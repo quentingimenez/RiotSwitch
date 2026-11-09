@@ -1,12 +1,12 @@
-namespace RiotSwitcher.Core;
+﻿namespace RiotSwitcher.Core;
 
 public static class AppInfo
 {
     public const string ProductName = "RiotSwitch";
     public const string DisplayName = "RiotSwitch";
-    public const string Version = "1.1.1";
+    public const string Version = "1.1.2";
 
-    /// <summary>Dépôt GitHub public utilisé pour les releases et l'auto-update.</summary>
+    /// <summary>DÃ©pÃ´t GitHub public utilisÃ© pour les releases et l'auto-update.</summary>
     public const string GitHubOwner = "quentingimenez";
     public const string GitHubRepositoryName = "RiotSwitch";
     public const string GitHubRepositoryUrl = "https://github.com/quentingimenez/RiotSwitch";
@@ -19,13 +19,13 @@ public static class AppInfo
     public const string SwitchMutexName = @"Local\RiotSwitch.Switch";
     public const string VaultMutexName = @"Local\RiotSwitch.Vault";
 
-    /// <summary>Événement posé pendant un switch (pour que le mode zéro fond ne quitte pas).</summary>
+    /// <summary>Ã‰vÃ©nement posÃ© pendant un switch (pour que le mode zÃ©ro fond ne quitte pas).</summary>
     public const string SwitchingEventName = @"Local\RiotSwitch.Switching";
 
-    /// <summary>Titre de la fenêtre cachée du veilleur (FindWindow).</summary>
+    /// <summary>Titre de la fenÃªtre cachÃ©e du veilleur (FindWindow).</summary>
     public const string WatchWindowTitle = "RiotSwitch.Watch";
 
-    public const string SettingsTitle = "RiotSwitch — Paramètres";
+    public const string SettingsTitle = "RiotSwitch â€” ParamÃ¨tres";
     public const string AccountsPanelTitle = "Comptes Riot";
     public const string DataFolderName = "RiotSwitch";
 }

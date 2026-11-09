@@ -29,8 +29,10 @@ ICON_SIZES = [
 ]
 
 
-def square_crop(image: Image.Image, pad_ratio: float = 0.10) -> Image.Image:
-    alpha = image.getchannel("A").point(lambda value: 255 if value > 8 else 0)
+def square_crop(image: Image.Image, pad_ratio: float = 0.02, alpha_threshold: int = 96) -> Image.Image:
+    # On ignore les pixels très transparents (ombre portée) pour que les deux
+    # cartes occupent presque tout le carré de l'icône, y compris à 16/32 px.
+    alpha = image.getchannel("A").point(lambda value: 255 if value > alpha_threshold else 0)
     bbox = alpha.getbbox()
     if bbox is None:
         raise SystemExit("Le PNG source est entièrement transparent.")
