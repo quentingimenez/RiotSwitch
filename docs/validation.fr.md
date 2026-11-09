@@ -94,7 +94,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 ### Publication GitHub / CI
 
 - Dépôt public créé : `https://github.com/quentingimenez/RiotSwitch` (branche `main`).
-- CI `.github/workflows/ci.yml` : run vert sur le commit initial (restore, build Release, tests 62/62).
+- CI `.github/workflows/ci.yml` : run vert sur le commit initial (restore, build Release, tests 62/62) ; sur `main`, publie et attache l'artefact téléchargeable **RiotSwitch-win-x64** (`dist/`, conservé 14 jours).
 - Release `v1.0.0` : run vert, archive `RiotSwitch-win-x64.zip` (419 594 octets) et `RiotSwitch-win-x64.zip.sha256` publiées. L'archive extraite contient `RiotSwitch.exe` à la racine et `cli/RiotSwitch.Cli.exe` ; `--version` renvoie 1.0.0.
 - Release `v1.1.0` : run vert, archive et SHA-256 publiés, CI verte ; contrôle `RiotSwitch.Cli.exe check-update` depuis l'archive v1.0.0 → « Mise à jour disponible : v1.1.0 ».
 - Release `v1.1.1` : run vert, archive `RiotSwitch-win-x64.zip` (527 506 octets) + SHA-256 publiés ; checksum local identique, `FileVersion 1.1.1.0`, `ProductVersion 1.1.1+9ae84e9`, `--version` → `RiotSwitch 1.1.1` ; contrôle `check-update` depuis l'installation 1.1.0 → « Mise à jour disponible : v1.1.1 ».

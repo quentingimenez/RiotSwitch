@@ -37,3 +37,17 @@ jobs:
           name: test-results
           path: '**/*.trx'
           if-no-files-found: ignore
+
+      - name: Publish application
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        run: ./tools/publish.ps1
+
+      - name: Upload application artifact
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: RiotSwitch-win-x64
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14

@@ -54,6 +54,16 @@ Télécharge `RiotSwitch-win-x64.zip` depuis la dernière [release GitHub](https
 
 Les releases sont construites automatiquement par GitHub Actions à chaque tag `v*` : archive `RiotSwitch-win-x64.zip` + empreinte SHA-256.
 
+### Depuis la CI (build récent)
+
+Chaque push sur `main` produit aussi un artefact téléchargeable, sans attendre une release :
+
+1. Ouvre l'onglet **Actions** → dernier run **CI** vert.
+2. En bas du résumé du run, télécharge l'artefact **RiotSwitch-win-x64**.
+3. Extrais l'archive : `RiotSwitch.exe` se trouve à la racine, avec ses dépendances et le CLI dans `cli/`.
+
+L'artefact CI est conservé 14 jours et n'est pas signé comme une release ; pour une installation durable, préfère l'archive de release ci-dessus.
+
 ### Depuis les sources
 
 ```powershell
