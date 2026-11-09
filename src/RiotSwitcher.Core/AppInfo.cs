@@ -4,7 +4,7 @@ public static class AppInfo
 {
     public const string ProductName = "RiotSwitch";
     public const string DisplayName = "RiotSwitch";
-    public const string Version = "1.0.0";
+    public const string Version = "1.1.0";
 
     /// <summary>Dépôt GitHub public utilisé pour les releases et l'auto-update.</summary>
     public const string GitHubOwner = "quentingimenez";
