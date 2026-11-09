@@ -11,7 +11,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | CLI `status` / `doctor` / `window` (lecture seule, installation réelle) | ✅ |
 | Capture des comptes A et B | ✅ compte A et compte B enregistrés dans le coffre, format PslV1 |
 | Auto-update (version, GitHub Releases, SHA-256, zip-slip) | ✅ tests unitaires (62/62) ; vérification et installation réelles validées de la release v1.0.0 vers v1.1.0 |
-| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0` à `v1.1.3` ; v1.1.3 ajoute un exécutable autonome + SHA-256, v1.1.4 ajoute l'installateur Inno Setup + SHA-256 |
+| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0` à `v1.1.5` ; v1.1.3 ajoute un exécutable autonome + SHA-256, v1.1.4 ajoute l'installateur Inno Setup + SHA-256, v1.1.5 passe le zéro fond en mode par défaut |
 | Icône de l'application | ✅ logo « Twin Profiles » transparent intégré (`app.ico` multi-tailles + `Assets/logo-twin-profiles.png`), contenu agrandi dans v1.1.2 (recadrage serré sans ombre portée, 94–100 % du cadre selon la taille), icône vérifiée dans l'exe et les fenêtres |
 | API locale : authentification lockfile + lecture du PUUID | ✅ |
 | Mode veilleur caché (sans Riot) | ✅ aucune fenêtre, 0 % CPU au repos, WorkingSet ≈ 55 Mo / privé ≈ 12 Mo |
