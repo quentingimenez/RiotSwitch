@@ -10,8 +10,8 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | Tests unitaires Core | ✅ 62/62 |
 | CLI `status` / `doctor` / `window` (lecture seule, installation réelle) | ✅ |
 | Capture des comptes A et B | ✅ compte A et compte B enregistrés dans le coffre, format PslV1 |
-| Auto-update (version, GitHub Releases, SHA-256, zip-slip) | ✅ tests unitaires (62/62) ; vérification réelle à valider depuis la release v1.0.0 vers v1.1.0 |
-| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, release `v1.0.0` avec archive et SHA-256 |
+| Auto-update (version, GitHub Releases, SHA-256, zip-slip) | ✅ tests unitaires (62/62) ; vérification et installation réelles validées de la release v1.0.0 vers v1.1.0 |
+| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0` et `v1.1.0` avec archive et SHA-256 |
 | API locale : authentification lockfile + lecture du PUUID | ✅ |
 | Mode veilleur caché (sans Riot) | ✅ aucune fenêtre, 0 % CPU au repos, WorkingSet ≈ 55 Mo / privé ≈ 12 Mo |
 | Overlay visuel attaché | ✅ testé sur second écran : bouton 40×40, panneau déplié 340×200, clic sans vol de focus |
@@ -94,7 +94,8 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 - Dépôt public créé : `https://github.com/quentingimenez/RiotSwitch` (branche `main`).
 - CI `.github/workflows/ci.yml` : run vert sur le commit initial (restore, build Release, tests 62/62).
 - Release `v1.0.0` : run vert, archive `RiotSwitch-win-x64.zip` (419 594 octets) et `RiotSwitch-win-x64.zip.sha256` publiées. L'archive extraite contient `RiotSwitch.exe` à la racine et `cli/RiotSwitch.Cli.exe` ; `--version` renvoie 1.0.0.
-- Prochaine étape : release `v1.1.0`, puis vérifier depuis l'archive v1.0.0 que `RiotSwitch.Cli.exe check-update` détecte v1.1.0.
+- Release `v1.1.0` : run vert, archive et SHA-256 publiés, CI verte ; contrôle `RiotSwitch.Cli.exe check-update` depuis l'archive v1.0.0 → « Mise à jour disponible : v1.1.0 ».
+- Installation réelle : depuis l'application v1.0.0 extraite, Paramètres → « Installer la mise à jour » → téléchargement, vérification SHA-256, sauvegarde, remplacement des fichiers par `UpdateApplier`, relance du veilleur en 1.1.0 (`FileVersion 1.1.0.0`) ; journal `%TEMP%\RiotSwitch-update.log` et artefacts supprimés après validation.
 
 - Workflows : `.github/workflows/ci.yml` (push/PR : restore, build Release, tests) et `.github/workflows/release.yml` (tag `v*` : vérifie la version du code, publie l'application framework-dependent win-x64, crée l'archive + SHA-256 puis la release GitHub).
 
@@ -172,7 +173,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 
 - [ ] Paramètres → « Vérifier maintenant » avec la dernière release : « À jour » ou une version disponible s'affiche sans erreur.
 - [ ] Désactiver « Vérifier automatiquement », enregistrer, relancer : aucune vérification automatique (vérifier `lastUpdateCheckUtc` dans `settings.json`).
-- [ ] Depuis une version publiée plus ancienne, installer la mise à jour depuis les paramètres : téléchargement, vérification SHA-256, remplacement des fichiers et relance du veilleur.
+- [x] Depuis une version publiée plus ancienne, installer la mise à jour depuis les paramètres : téléchargement, vérification SHA-256, remplacement des fichiers et relance du veilleur (validé v1.0.0 → v1.1.0).
 - [ ] Vérifier qu'un dossier de build (`\bin\`) refuse l'installation automatique avec un message clair.
 - [ ] Vérifier `%TEMP%\RiotSwitch-update.log` et l'absence de fichier `.part` résiduel.
 
