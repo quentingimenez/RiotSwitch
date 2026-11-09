@@ -22,6 +22,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | Switch via l'overlay (clic réel) | ✅ B→A puis A→B déclenchés en cliquant sur le bouton ⇄ puis sur la ligne du compte ; API locale vérifiée après chaque relance, journal nettoyé |
 | Switch réel A↔B | ✅ validé le 09/11 vers 19:55 : A→B puis B→A, sortie 0, vérification API du PUUID, UI et service relancés |
 | Rollback réel | ✅ provoqué par des sessions cibles expirées : retour au compte précédent, UI restaurée, journal effacé (avant correctif d'environnement, puis pipeline complet revalidé) |
+| Mode zéro fond par défaut | ✅ `AppSettings.BackgroundMode = Launcher` et `Autostart=false` par défaut, `Normalize` retombe sur Launcher, sans argument l'application démarre Riot puis quitte avec lui ; `--watch` explicite conserve le veilleur persistant (build/tests 62/62 ; lancement réel à confirmer en conditions normales) |
 | Premier lancement WelcomeForm | ⏳ à valider |
 | Publish `dist/` | ✅ republié après le correctif `ELECTRON_RUN_AS_NODE` (`dist\RiotSwitch.exe`, `dist\cli\RiotSwitch.Cli.exe`) |
 

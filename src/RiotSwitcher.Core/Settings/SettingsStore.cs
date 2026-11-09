@@ -13,8 +13,8 @@ public enum BackgroundMode
 public sealed class AppSettings
 {
     public int SchemaVersion { get; set; } = 1;
-    public BackgroundMode BackgroundMode { get; set; } = BackgroundMode.Watch;
-    public bool Autostart { get; set; } = true;
+    public BackgroundMode BackgroundMode { get; set; } = BackgroundMode.Launcher;
+    public bool Autostart { get; set; }
     public double OverlayOffsetRightDip { get; set; } = 12;
     public double OverlayOffsetTopDip { get; set; } = 12;
     public bool OverlayPositionSet { get; set; }
@@ -95,7 +95,7 @@ public sealed class SettingsStore
     public static void Normalize(AppSettings settings)
     {
         if (!Enum.IsDefined(typeof(BackgroundMode), settings.BackgroundMode))
-            settings.BackgroundMode = BackgroundMode.Watch;
+            settings.BackgroundMode = BackgroundMode.Launcher;
 
         if (settings.OverlayOffsetRightDip < -2000 || settings.OverlayOffsetRightDip > 2000)
             settings.OverlayOffsetRightDip = 12;

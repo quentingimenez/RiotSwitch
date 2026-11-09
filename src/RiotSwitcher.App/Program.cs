@@ -12,8 +12,9 @@ internal static class Program
     private const string HelpText =
         "RiotSwitch — change de compte Riot sans mot de passe.\n\n" +
         "Utilisation :\n" +
-        "  RiotSwitch.exe                       Veilleur en arrière-plan (par défaut)\n" +
-        "  RiotSwitch.exe --watch               Veilleur en arrière-plan\n" +
+        "  RiotSwitch.exe                       Mode par défaut : zéro fond (lance Riot Client\n" +
+        "                                       et quitte avec lui)\n" +
+        "  RiotSwitch.exe --watch               Veilleur en arrière-plan persistant\n" +
         "  RiotSwitch.exe --launch-riot --ephemeral\n" +
         "                                       Lance Riot Client et quitte avec lui (zéro fond)\n" +
         "  RiotSwitch.exe --settings            Ouvre les paramètres\n" +
@@ -104,7 +105,8 @@ internal static class Program
 
         if (!single.IsOwner)
         {
-            if (options.LaunchRiot)
+            var launchRiotFromDefault = options.NoArguments && settings.BackgroundMode == BackgroundMode.Launcher;
+            if (options.LaunchRiot || launchRiotFromDefault)
             {
                 // Un veilleur tourne déjà : il affichera l'overlay quand la fenêtre Riot apparaîtra.
                 if (!StartRiot(paths, logger))
@@ -143,7 +145,11 @@ internal static class Program
             logger.Warn($"Raccourci de démarrage non créé : {shortcutWarning}");
         }
 
-        if (options.LaunchRiot)
+        // Le mode par défaut est le zéro fond : sans argument et avec la configuration
+        // Launcher, on démarre Riot Client puis on s'arrête avec lui. Un --watch explicite
+        // conserve le veilleur persistant, même si Launcher est configuré.
+        var launcherByDefault = options.NoArguments && settings.BackgroundMode == BackgroundMode.Launcher;
+        if (options.LaunchRiot || launcherByDefault)
         {
             if (!StartRiot(paths, logger))
             {
@@ -152,7 +158,7 @@ internal static class Program
             }
         }
 
-        var exitOnClientClose = options.LaunchRiot && options.Ephemeral;
+        var exitOnClientClose = launcherByDefault || (options.LaunchRiot && options.Ephemeral);
         var context = new WatchContext(paths, settings, settingsStore, logger, exitOnClientClose);
         Application.Run(context);
     }
@@ -260,10 +266,14 @@ internal static class Program
         public bool Attach { get; private set; }
         public bool Help { get; private set; }
         public bool Version { get; private set; }
+        public bool NoArguments { get; private set; }
 
         public static CommandLineOptions Parse(string[] args)
         {
-            var options = new CommandLineOptions();
+            var options = new CommandLineOptions
+            {
+                NoArguments = args.Length == 0
+            };
 
             foreach (var raw in args)
             {

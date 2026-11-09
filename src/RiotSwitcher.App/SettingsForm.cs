@@ -84,26 +84,26 @@ internal sealed class SettingsForm : Form
             Size = new Size(580, 148)
         };
 
-        _watchMode = new RadioButton
-        {
-            Text = "Veilleur en arrière-plan (léger)",
-            Checked = settings.BackgroundMode == BackgroundMode.Watch,
-            Location = new Point(16, 24),
-            Size = new Size(300, 22)
-        };
-
         _launcherMode = new RadioButton
         {
-            Text = "Zéro fond (lancé depuis le raccourci Riot Client (Switch))",
+            Text = "Zéro fond (par défaut, lancé depuis le raccourci Riot Client (Switch))",
             Checked = settings.BackgroundMode == BackgroundMode.Launcher,
-            Location = new Point(16, 48),
+            Location = new Point(16, 24),
             Size = new Size(540, 22)
+        };
+
+        _watchMode = new RadioButton
+        {
+            Text = "Veilleur en arrière-plan (persistant)",
+            Checked = settings.BackgroundMode == BackgroundMode.Watch,
+            Location = new Point(16, 48),
+            Size = new Size(300, 22)
         };
 
         _autostart = new CheckBox
         {
             Text = "Démarrer le veilleur avec Windows",
-            Checked = settings.Autostart,
+            Checked = settings.Autostart && settings.BackgroundMode == BackgroundMode.Watch,
             Enabled = settings.BackgroundMode == BackgroundMode.Watch,
             Location = new Point(34, 74),
             Size = new Size(360, 22)
@@ -393,7 +393,11 @@ internal sealed class SettingsForm : Form
         CancelButton = cancel;
 
         _watchMode.CheckedChanged += (_, _) => _autostart.Enabled = _watchMode.Checked;
-        _launcherMode.CheckedChanged += (_, _) => _autostart.Enabled = _watchMode.Checked;
+        _launcherMode.CheckedChanged += (_, _) =>
+        {
+            _autostart.Enabled = _watchMode.Checked;
+            if (_launcherMode.Checked) _autostart.Checked = false;
+        };
 
         LoadAccounts();
         UpdateUpdateStatus();

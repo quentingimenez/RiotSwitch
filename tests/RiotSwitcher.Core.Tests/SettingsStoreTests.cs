@@ -14,8 +14,8 @@ public sealed class SettingsStoreTests
             var store = new SettingsStore(paths);
             var settings = store.Load();
 
-            Assert.Equal(BackgroundMode.Watch, settings.BackgroundMode);
-            Assert.True(settings.Autostart);
+            Assert.Equal(BackgroundMode.Launcher, settings.BackgroundMode);
+            Assert.False(settings.Autostart);
             Assert.Equal(12, settings.OverlayOffsetRightDip);
             Assert.False(settings.OverlayPinned);
             Assert.Equal("none", settings.DefaultLaunchProduct);
@@ -90,7 +90,7 @@ public sealed class SettingsStoreTests
 
         SettingsStore.Normalize(settings);
 
-        Assert.Equal(BackgroundMode.Watch, settings.BackgroundMode);
+        Assert.Equal(BackgroundMode.Launcher, settings.BackgroundMode);
         Assert.Equal(12, settings.OverlayOffsetRightDip);
         Assert.Equal(12, settings.OverlayOffsetTopDip);
         Assert.Equal(0, settings.OverlayPinnedRightPx);

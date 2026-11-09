@@ -46,7 +46,8 @@ internal sealed class WelcomeForm : Form
             Text =
                 "RiotSwitch garde tes comptes Riot dans un coffre local chiffré et les reconnecte " +
                 "sans que tu aies à te déconnecter manuellement. L'overlay n'apparaît que quand la " +
-                "fenêtre du Riot Client est ouverte : aucun processus visible le reste du temps.",
+                "fenêtre du Riot Client est ouverte. Par défaut, le mode zéro fond ne laisse aucun " +
+                "processus RiotSwitch quand Riot est fermé.",
             AutoSize = false,
             Location = new Point(24, 62),
             Size = new Size(510, 62)
@@ -74,26 +75,26 @@ internal sealed class WelcomeForm : Form
             Size = new Size(300, 20)
         };
 
-        _watchMode = new RadioButton
-        {
-            Text = "Veilleur en arrière-plan (léger, démarre avec Windows)",
-            Checked = settings.BackgroundMode == BackgroundMode.Watch,
-            Location = new Point(28, 256),
-            Size = new Size(500, 22)
-        };
-
         _launcherMode = new RadioButton
         {
-            Text = "Zéro fond : je lance RiotSwitch depuis le raccourci Riot Client (Switch)",
+            Text = "Zéro fond (par défaut) : je lance RiotSwitch depuis le raccourci Riot Client (Switch)",
             Checked = settings.BackgroundMode == BackgroundMode.Launcher,
-            Location = new Point(28, 280),
+            Location = new Point(28, 256),
             Size = new Size(520, 22)
+        };
+
+        _watchMode = new RadioButton
+        {
+            Text = "Veilleur en arrière-plan (persistant, démarre avec Windows)",
+            Checked = settings.BackgroundMode == BackgroundMode.Watch,
+            Location = new Point(28, 280),
+            Size = new Size(500, 22)
         };
 
         _autostart = new CheckBox
         {
             Text = "Démarrer le veilleur avec Windows",
-            Checked = settings.Autostart,
+            Checked = settings.Autostart && settings.BackgroundMode == BackgroundMode.Watch,
             Location = new Point(28, 310),
             Size = new Size(400, 22),
             Enabled = settings.BackgroundMode == BackgroundMode.Watch
@@ -145,6 +146,10 @@ internal sealed class WelcomeForm : Form
         CancelButton = later;
 
         _watchMode.CheckedChanged += (_, _) => _autostart.Enabled = _watchMode.Checked;
+        _launcherMode.CheckedChanged += (_, _) =>
+        {
+            if (_launcherMode.Checked) _autostart.Checked = false;
+        };
         start.Click += (_, _) => SaveAndApply();
     }
 

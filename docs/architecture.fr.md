@@ -32,19 +32,20 @@ Aucun processus Windows, service, pilote, icône de notification ou injection El
 
 ## Modes d'exécution
 
-### Mode veilleur (`--watch`, par défaut)
+### Mode zéro fond (par défaut, `--launch-riot --ephemeral`)
+
+- Sans argument et avec `BackgroundMode = Launcher`, RiotSwitch démarre le Riot Client puis s'exécute en mode veilleur.
+- Quand la fenêtre du Riot Client disparaît, le veilleur quitte (`exitOnClientClose` + délai de grâce de 30 s au démarrage pour laisser le client s'ouvrir).
+- Aucun processus RiotSwitch ne reste une fois le Riot Client fermé.
+- Un `--watch` explicite conserve le veilleur persistant, même si `Launcher` est configuré.
+
+### Mode veilleur (`--watch`)
 
 - Un seul processus caché (mutex `Local\RiotSwitch.Watch`).
 - Une fenêtre message-only permet aux autres instances de demander l'ouverture des paramètres ou la fermeture.
 - `RiotWindowTracker` combine `SetWinEventHook` (création/destruction/affichage/déplacement de fenêtres) et un timer de secours de 5 secondes.
 - Tant qu'aucune fenêtre du Riot Client n'est visible, aucun overlay n'existe : pas de fenêtre, pas de dessin, pas d'activité CPU mesurable.
 - Dès que la fenêtre apparaît, l'overlay est créé et attaché comme fenêtre possédée par le Riot Client (il suit ses déplacements et disparaît avec elle).
-
-### Mode zéro fond (`--launch-riot --ephemeral`)
-
-- RiotSwitch démarre le Riot Client puis s'exécute en mode veilleur.
-- Quand la fenêtre du Riot Client disparaît, le veilleur quitte (`exitOnClientClose` + délai de grâce de 30 s au démarrage pour laisser le client s'ouvrir).
-- Aucun processus RiotSwitch ne reste une fois le Riot Client fermé.
 
 ### Autres modes
 

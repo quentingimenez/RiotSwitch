@@ -89,8 +89,8 @@ Le dossier `dist\` contient `RiotSwitch.exe`, ses dépendances, le CLI dans `dis
 
 1. Lance `RiotSwitch.exe`. L'assistant de premier lancement s'ouvre.
 2. Choisis le mode :
+   - **Zéro fond (par défaut)** : RiotSwitch ne tourne pas tant que le Riot Client n'est pas lancé. Le raccourci « Riot Client (Switch) » démarre le Riot Client et le veilleur ensemble ; le veilleur quitte avec le Riot Client.
    - **Veilleur en arrière-plan** : RiotSwitch reste discret en mémoire et affiche l'overlay dès que la fenêtre du Riot Client apparaît. Démarrage automatique possible à l'ouverture de session Windows.
-   - **Zéro fond** : RiotSwitch ne tourne pas tant que le Riot Client n'est pas lancé. Le raccourci « Riot Client (Switch) » démarre le Riot Client et le veilleur ensemble ; le veilleur quitte avec le Riot Client.
 3. Ouvre le Riot Client et connecte-toi au premier compte.
 4. Clique sur le bouton ⇄ en haut à droite, puis sur « + Ajouter le compte actuel ».
 5. Déconnecte-toi, connecte-toi au second compte, puis ajoute-le de la même façon.
@@ -112,8 +112,8 @@ Le dossier `dist\` contient `RiotSwitch.exe`, ses dépendances, le CLI dans `dis
 ### Modes de la ligne de commande
 
 ```text
-RiotSwitch.exe                  # mode veilleur (équivalent à --watch)
-RiotSwitch.exe --watch          # veilleur caché, sans fenêtre ni icône de notification
+RiotSwitch.exe                  # mode par défaut : zéro fond (lance Riot et quitte avec lui)
+RiotSwitch.exe --watch          # veilleur caché persistant, sans fenêtre ni icône de notification
 RiotSwitch.exe --launch-riot    # démarre le Riot Client (ou rouvre son interface) puis le veilleur
 RiotSwitch.exe --launch-riot --ephemeral
                                 # idem, mais quitte quand le Riot Client se ferme (zéro fond)
