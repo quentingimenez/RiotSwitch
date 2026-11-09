@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Validate tag and version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Tag invalide : $tag (format attendu vX.Y.Z)"
+          }
+          $version = $tag.Substring(1)
+          $appInfo = Select-String -Path "src/RiotSwitcher.Core/AppInfo.cs" -Pattern 'Version\s*=\s*"([^"]+)"'
+          if (-not $appInfo) { throw "Version introuvable dans AppInfo.cs" }
+          $codeVersion = $appInfo.Matches[0].Groups[1].Value
+          if ($codeVersion -ne $version) {
+            throw "Version du code ($codeVersion) différente du tag ($version)"
+          }
+          "VERSION=$version" >> $env:GITHUB_ENV
+          Write-Host "Version validée : $version"
+
+      - name: Restore
+        run: dotnet restore RiotSwitcher.sln
+
+      - name: Build
+        run: dotnet build RiotSwitcher.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/RiotSwitcher.Core.Tests/RiotSwitcher.Core.Tests.csproj -c Release --no-build
+
+      - name: Publish and package
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File tools\publish.ps1
+          if (-not (Test-Path "dist\RiotSwitch.exe")) { throw "dist\RiotSwitch.exe absent après publish" }
+          $zip = "RiotSwitch-win-x64.zip"
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path "dist\*" -DestinationPath $zip -CompressionLevel Optimal
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $zip" | Set-Content -Path "$zip.sha256" -NoNewline -Encoding ascii
+          Write-Host "Archive : $zip"
+          Write-Host "SHA-256 : $hash"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          gh release create $tag `
+            "RiotSwitch-win-x64.zip" "RiotSwitch-win-x64.zip.sha256" `
+            --title "RiotSwitch $tag" --generate-notes --verify-tag

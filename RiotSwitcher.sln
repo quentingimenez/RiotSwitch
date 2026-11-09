@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{00DCB81A-821A-41BC-A566-81440E739F87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiotSwitcher.Core", "src\RiotSwitcher.Core\RiotSwitcher.Core.csproj", "{F196E9E0-D7E3-48EB-ACD4-185EE8607977}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiotSwitcher.App", "src\RiotSwitcher.App\RiotSwitcher.App.csproj", "{659516A7-B0CB-45CF-A762-40C8D060ABCF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiotSwitcher.Cli", "src\RiotSwitcher.Cli\RiotSwitcher.Cli.csproj", "{8D67D7E3-ABD9-4A3E-B4E9-E5F185743A78}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{04CF12EA-A390-4E07-9A15-7B7AE4D32B8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiotSwitcher.Core.Tests", "tests\RiotSwitcher.Core.Tests\RiotSwitcher.Core.Tests.csproj", "{77842029-634A-4CDF-BEC4-707693EBDF4C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F196E9E0-D7E3-48EB-ACD4-185EE8607977}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F196E9E0-D7E3-48EB-ACD4-185EE8607977}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F196E9E0-D7E3-48EB-ACD4-185EE8607977}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F196E9E0-D7E3-48EB-ACD4-185EE8607977}.Release|Any CPU.Build.0 = Release|Any CPU
+		{659516A7-B0CB-45CF-A762-40C8D060ABCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{659516A7-B0CB-45CF-A762-40C8D060ABCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{659516A7-B0CB-45CF-A762-40C8D060ABCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{659516A7-B0CB-45CF-A762-40C8D060ABCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D67D7E3-ABD9-4A3E-B4E9-E5F185743A78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D67D7E3-ABD9-4A3E-B4E9-E5F185743A78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D67D7E3-ABD9-4A3E-B4E9-E5F185743A78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D67D7E3-ABD9-4A3E-B4E9-E5F185743A78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77842029-634A-4CDF-BEC4-707693EBDF4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77842029-634A-4CDF-BEC4-707693EBDF4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77842029-634A-4CDF-BEC4-707693EBDF4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77842029-634A-4CDF-BEC4-707693EBDF4C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F196E9E0-D7E3-48EB-ACD4-185EE8607977} = {00DCB81A-821A-41BC-A566-81440E739F87}
+		{659516A7-B0CB-45CF-A762-40C8D060ABCF} = {00DCB81A-821A-41BC-A566-81440E739F87}
+		{8D67D7E3-ABD9-4A3E-B4E9-E5F185743A78} = {00DCB81A-821A-41BC-A566-81440E739F87}
+		{77842029-634A-4CDF-BEC4-707693EBDF4C} = {04CF12EA-A390-4E07-9A15-7B7AE4D32B8A}
+	EndGlobalSection
+EndGlobal

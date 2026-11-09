@@ -1,0 +1,12 @@
+bin/
+obj/
+dist/
+publish/
+TestResults/
+*.user
+*.suo
+.vs/
+ui-*.txt
+*.trx
+RiotSwitch-win-x64.zip
+RiotSwitch-win-x64.zip.sha256
