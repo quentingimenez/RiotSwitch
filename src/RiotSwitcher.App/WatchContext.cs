@@ -20,6 +20,7 @@ internal sealed class WatchContext : ApplicationContext
     private readonly bool _exitOnClientClose;
     private readonly SessionVault _vault;
     private readonly SwitchService _switchService;
+    private readonly IRiotProcessController _processController;
     private readonly Control _dispatcher;
     private readonly WatchMessageWindow _messages;
     private readonly RiotWindowTracker _tracker;
@@ -49,6 +50,7 @@ internal sealed class WatchContext : ApplicationContext
 
         _vault = new SessionVault(paths, logger);
         _switchService = new SwitchService(paths, _vault, logger: logger);
+        _processController = new RiotProcessController(paths);
 
         _dispatcher = new Control();
         _ = _dispatcher.Handle; // handle de thread pour BeginInvoke / WinEventHook
@@ -111,15 +113,23 @@ internal sealed class WatchContext : ApplicationContext
 
             if (!_seenWindow && DateTime.UtcNow < _graceUntil)
             {
-                _exitPending = true;
-                _exitTimer.Start();
+                ScheduleExitCheck();
                 return;
             }
 
             if (SwitchSignal.IsActive())
             {
-                _exitPending = true;
-                _exitTimer.Start();
+                ScheduleExitCheck();
+                return;
+            }
+
+            // Fermer la fenêtre Riot (croix / réduction dans la zone de notification)
+            // ne quitte pas Riot Client : l'UX reste chargée en arrière-plan. On garde
+            // donc le veilleur en vie tant que le processus UI Riot existe, pour
+            // recréer l'overlay quand la fenêtre est rouverte.
+            if (IsRiotClientUiRunning())
+            {
+                ScheduleExitCheck();
                 return;
             }
 
@@ -159,6 +169,24 @@ internal sealed class WatchContext : ApplicationContext
         }
     }
 
+    private void ScheduleExitCheck()
+    {
+        _exitPending = true;
+        _exitTimer.Start();
+    }
+
+    private bool IsRiotClientUiRunning()
+    {
+        try
+        {
+            return _processController.FindClientUi() is not null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private void CheckExitPending()
     {
         if (_quitting || !_exitPending) return;
@@ -166,6 +194,11 @@ internal sealed class WatchContext : ApplicationContext
         if (SwitchSignal.IsActive()) return;
         if (!_seenWindow && DateTime.UtcNow < _graceUntil) return;
         if (_overlay is not null && !_overlay.IsDisposed) return;
+
+        // Le client Riot peut être réduit dans la zone de notification : sa fenêtre
+        // est absente mais son processus UI tourne encore. On attend qu'il quitte
+        // réellement avant de terminer le veilleur.
+        if (IsRiotClientUiRunning()) return;
 
         _exitTimer.Stop();
         Quit();

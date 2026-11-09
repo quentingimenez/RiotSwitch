@@ -11,7 +11,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | CLI `status` / `doctor` / `window` (lecture seule, installation réelle) | ✅ |
 | Capture des comptes A et B | ✅ compte A et compte B enregistrés dans le coffre, format PslV1 |
 | Auto-update (version, GitHub Releases, SHA-256, zip-slip) | ✅ tests unitaires (62/62) ; vérification et installation réelles validées de la release v1.0.0 vers v1.1.0 |
-| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0` à `v1.1.5` ; v1.1.3 ajoute un exécutable autonome + SHA-256, v1.1.4 ajoute l'installateur Inno Setup + SHA-256, v1.1.5 passe le zéro fond en mode par défaut |
+| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0` à `v1.1.6` ; v1.1.3 ajoute un exécutable autonome + SHA-256, v1.1.4 ajoute l'installateur Inno Setup + SHA-256, v1.1.5 passe le zéro fond en mode par défaut, v1.1.6 conserve le switcher quand la fenêtre Riot est réduite dans la zone de notification |
 | Icône de l'application | ✅ logo « Twin Profiles » transparent intégré (`app.ico` multi-tailles + `Assets/logo-twin-profiles.png`), contenu agrandi dans v1.1.2 (recadrage serré sans ombre portée, 94–100 % du cadre selon la taille), icône vérifiée dans l'exe et les fenêtres |
 | API locale : authentification lockfile + lecture du PUUID | ✅ |
 | Mode veilleur caché (sans Riot) | ✅ aucune fenêtre, 0 % CPU au repos, WorkingSet ≈ 55 Mo / privé ≈ 12 Mo |
@@ -22,9 +22,9 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | Switch via l'overlay (clic réel) | ✅ B→A puis A→B déclenchés en cliquant sur le bouton ⇄ puis sur la ligne du compte ; API locale vérifiée après chaque relance, journal nettoyé |
 | Switch réel A↔B | ✅ validé le 09/11 vers 19:55 : A→B puis B→A, sortie 0, vérification API du PUUID, UI et service relancés |
 | Rollback réel | ✅ provoqué par des sessions cibles expirées : retour au compte précédent, UI restaurée, journal effacé (avant correctif d'environnement, puis pipeline complet revalidé) |
-| Mode zéro fond par défaut | ✅ `AppSettings.BackgroundMode = Launcher` et `Autostart=false` par défaut, `Normalize` retombe sur Launcher, sans argument l'application démarre Riot puis quitte avec lui ; `--watch` explicite conserve le veilleur persistant (build/tests 62/62 ; lancement réel à confirmer en conditions normales) |
+| Mode zéro fond par défaut | ✅ `AppSettings.BackgroundMode = Launcher` et `Autostart=false` par défaut, `Normalize` retombe sur Launcher, sans argument l'application démarre Riot puis quitte avec lui ; `--watch` explicite conserve le veilleur persistant (build/tests 62/62). Test réel v1.1.6 : lancement sans argument, overlay créé ; fermeture de la fenêtre Riot vers la zone de notification → switcher toujours actif ; réouverture → overlay recréé |
 | Premier lancement WelcomeForm | ⏳ à valider |
-| Publish `dist/` | ✅ republié après le correctif `ELECTRON_RUN_AS_NODE` (`dist\RiotSwitch.exe`, `dist\cli\RiotSwitch.Cli.exe`) |
+| Publish `dist/` | ✅ republié en 1.1.6 (`dist\RiotSwitch.exe`, `dist\cli\RiotSwitch.Cli.exe`) |
 
 ### Détails de l'environnement validé
 
@@ -83,6 +83,13 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 - Correctif : arrêt/destruction des timers dans `Dispose(bool)` (et non seulement `OnFormClosing`), gardes `IsDisposed/Disposing` dans les ticks et les méthodes de dessin/position, et journalisation des exceptions UI non gérées au lieu de la boîte WinForms.
 - Validation : overlay ouvert et panneau déplié, puis switch complet vers l'autre compte (sortie 0, compte vérifié par l'API) ; le processus RiotSwitch reste actif, recrée l'overlay sur la nouvelle fenêtre Riot et aucune exception n'est affichée.
 
+### Correctif : fermeture de la fenêtre Riot vers la zone de notification (v1.1.6)
+
+- Symptôme : en mode zéro fond, après avoir fermé la fenêtre du Riot Client sans choisir « Quitter » dans la zone de notification, le switcher disparaissait ; à la réouverture du Riot Client, l'overlay n'était plus affiché.
+- Cause : dans `WatchContext.OnRiotWindowChanged(null)`, le switcher appelait `Quit()` dès que la fenêtre disparaissait, alors que le processus UI Riot Client reste chargé quand la fenêtre est réduite dans la zone de notification.
+- Correctif : `WatchContext` garde une référence `IRiotProcessController` et ne quitte plus tant que `FindClientUi()` trouve un processus `Riot Client` ; `ScheduleExitCheck()` programme une nouvelle vérification, et `CheckExitPending()` attend la disparition réelle du processus UI avant de terminer. Le timer de sortie reste arrêté si l'overlay existe ou pendant un switch.
+- Validation : lancement sans argument (mode zéro fond, `settings.json` en Launcher), Riot Client ouvert, overlay créé ; `ShowWindow(hwnd, 0)` pour simuler la réduction en zone de notification → processus RiotSwitch toujours vivant après 3 s ; `ShowWindow(hwnd, 4)` → overlay recréé (`handle=225381126`, `visible=True`), aucun doublon, aucune exception.
+
 ### Auto-update GitHub Releases
 
 - Client : `GitHubUpdateClient` interroge `GET https://api.github.com/repos/quentingimenez/RiotSwitch/releases/latest` (User-Agent, HTTPS, timeout 15 s), compare le tag `vX.Y.Z` à `AppInfo.Version`, exige les assets `RiotSwitch-win-x64.zip` et `RiotSwitch-win-x64.zip.sha256`.
@@ -102,6 +109,8 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 - Release `v1.1.2` : icône agrandie (recadrage sur le contenu, seuil alpha 96, 2 % de marge ; remplissage 94–100 % selon la taille), archive `RiotSwitch-win-x64.zip` (555 674 octets) + SHA-256 publiés ; `FileVersion 1.1.2.0`, `ProductVersion 1.1.2+c338a07`, `--version` → `RiotSwitch 1.1.2` ; `check-update` depuis l'installation 1.1.1 → « Mise à jour disponible : v1.1.2 ».
 - Release `v1.1.3` : run vert, quatre assets publiés — `RiotSwitch-win-x64.exe` (66 530 231 octets, self-contained single-file, sans runtime .NET), `RiotSwitch-win-x64.exe.sha256` (88 o), `RiotSwitch-win-x64.zip` (556 803 octets) et `RiotSwitch-win-x64.zip.sha256` (88 o). Téléchargement de contrôle : checksums exe et zip identiques (`Get-FileHash` SHA-256) ; exécutable portable testé en `--watch`, `FileVersion 1.1.3.0`. La variante portable détecte `AppInfo.IsPortableSingleFile` et désactive l'auto-update (mise à jour manuelle par retéléchargement de l'exe). CI : artefacts `RiotSwitch-win-x64` (555 399 o) et `RiotSwitch-win-x64-singlefile` (61 116 902 o) disponibles.
 - Release `v1.1.4` : installateur Windows Inno Setup `RiotSwitch-Setup-x64.exe` (2 435 749 octets) + `.sha256` (90 o), en plus du zip, de l'exe portable et de leurs checksums. Installation silencieuse de contrôle : setup exit 0, `RiotSwitch.exe` installé en `FileVersion 1.1.4.0`, désinstalleur exit 0. Installation par utilisateur dans `%LOCALAPPDATA%\Programs\RiotSwitch` (pas d'admin), raccourcis menu Démarrer, données `%LOCALAPPDATA%\RiotSwitch` conservées à la désinstallation ; vérifie la présence de .NET 8 Desktop Runtime et propose la page de téléchargement sinon.
+- Release `v1.1.5` : mode zéro fond par défaut (`BackgroundMode=Launcher`, `Autostart=false`, sans argument = lancement de Riot puis sortie avec lui) ; assets installateur, exe portable, zip et leurs SHA-256 publiés par le workflow.
+- Release `v1.1.6` : correctif de la fermeture de la fenêtre Riot vers la zone de notification ; le switcher reste actif et recrée l'overlay à la réouverture. Assets installateur, exe portable, zip et leurs SHA-256 publiés par le workflow.
 - Installation réelle : depuis l'application v1.0.0 extraite, Paramètres → « Installer la mise à jour » → téléchargement, vérification SHA-256, sauvegarde, remplacement des fichiers par `UpdateApplier`, relance du veilleur en 1.1.0 (`FileVersion 1.1.0.0`) ; journal `%TEMP%\RiotSwitch-update.log` et artefacts supprimés après validation.
 
 - Workflows : `.github/workflows/ci.yml` (push/PR : restore, build Release, tests, artefacts `RiotSwitch-win-x64` et `RiotSwitch-win-x64-singlefile`) et `.github/workflows/release.yml` (tag `v*` : vérifie la version du code, publie l'application framework-dependent win-x64, crée l'archive + SHA-256, publie l'exe autonome + SHA-256 puis la release GitHub).

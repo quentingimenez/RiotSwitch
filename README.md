@@ -107,7 +107,7 @@ Le dossier `dist\` contient `RiotSwitch.exe`, ses dépendances, le CLI dans `dis
 - Ordre des comptes : Paramètres → « Comptes enregistrés » → sélectionne un compte puis « ▲ Monter » / « ▼ Descendre », ou « Trier A → Z ». L'ordre est enregistré dans le coffre et utilisé par l'overlay.
 - Icône punaise dans l'en-tête du panneau : épingle l'overlay à sa position écran actuelle. Il ne suit plus les déplacements de la fenêtre Riot et ne peut plus être déplacé par erreur ; clique à nouveau sur la punaise pour le libérer.
 - Fermeture du panneau : clic en dehors ou touche Échap.
-- L'overlay n'apparaît que lorsque la fenêtre du Riot Client est visible ; il disparaît avec elle.
+- L'overlay n'apparaît que lorsque la fenêtre du Riot Client est visible ; il disparaît avec elle. En mode zéro fond, fermer la fenêtre Riot vers la zone de notification ne quitte pas le switcher : il reste actif tant que Riot Client tourne et recrée l'overlay à la réouverture. Il ne s'arrête que lorsque Riot Client quitte réellement.
 
 ### Modes de la ligne de commande
 
@@ -224,6 +224,6 @@ RiotSwitch n'est pas un produit Riot Games et n'est pas approuvé par Riot. Le p
 - Correctif post-switch : une exception `ObjectDisposedException` sur l'overlay (panneau ouvert pendant la fermeture du Riot Client) a été corrigée ; les timers s'arrêtent au `Dispose` et les exceptions UI sont journalisées. Testé panneau ouvert + switch complet : overlay recréé, aucune erreur.
 - Ordre des comptes personnalisable : le coffre conserve l'ordre choisi (`accounts.json`), l'overlay et les paramètres l'utilisent ; réordonnancement par ▲/▼ et tri alphabétique testés (62/62).
 - Auto-update GitHub Releases : vérification, comparaison de versions, téléchargement, contrôle SHA-256, extraction protégée contre le zip-slip, case de désactivation et commande `update` couverts par les tests ; installation réelle validée depuis l'archive v1.0.0 vers v1.1.0 (Paramètres → « Installer la mise à jour », redémarrage du veilleur).
-- Mode zéro fond par défaut depuis v1.1.5 : `BackgroundMode=Launcher` et `Autostart=false` par défaut ; sans argument, RiotSwitch démarre Riot Client puis quitte avec l'interface ; `--watch` reste disponible pour le veilleur persistant. Le raccourci « Riot Client (Switch) » (`--launch-riot --ephemeral`) est fourni par l'installateur.
+- Mode zéro fond par défaut depuis v1.1.5 : `BackgroundMode=Launcher` et `Autostart=false` par défaut ; sans argument, RiotSwitch démarre Riot Client puis quitte avec l'interface ; `--watch` reste disponible pour le veilleur persistant. Le raccourci « Riot Client (Switch) » (`--launch-riot --ephemeral`) est fourni par l'installateur. Correctif v1.1.6 : fermer la fenêtre Riot vers la zone de notification ne quitte plus le switcher ; il attend la fermeture réelle du processus Riot Client et recrée l'overlay à la réouverture.
 
 Voir [docs/validation.fr.md](docs/validation.fr.md) pour la checklist détaillée.
