@@ -18,6 +18,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | Épinglage de l'overlay | ✅ punaise testée : position écran verrouillée (`overlayPinned`, `overlayPinnedRightPx/TopPx`), déplacement de la fenêtre Riot sans bouger l'overlay, désépinglage sans saut de position |
 | Ordre des comptes | ✅ `MoveAccount` (▲/▼) et tri A → Z testés sur 3 comptes, persistance après rechargement, ordre partagé coffre/overlay/paramètres |
 | `--launch-riot --ephemeral` | ✅ testé depuis un shell pollué (`ELECTRON_RUN_AS_NODE=1`) : UI ouverte, overlay créé, processus quitté avec le client |
+| Switch via l'overlay (clic réel) | ✅ B→A puis A→B déclenchés en cliquant sur le bouton ⇄ puis sur la ligne du compte ; API locale vérifiée après chaque relance, journal nettoyé |
 | Switch réel A↔B | ✅ validé le 09/11 vers 19:55 : A→B puis B→A, sortie 0, vérification API du PUUID, UI et service relancés |
 | Rollback réel | ✅ provoqué par des sessions cibles expirées : retour au compte précédent, UI restaurée, journal effacé (avant correctif d'environnement, puis pipeline complet revalidé) |
 | Premier lancement WelcomeForm | ⏳ à valider |
