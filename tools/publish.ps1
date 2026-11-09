@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
@@ -34,7 +34,7 @@ dotnet publish $cliProject -c $Configuration -r $Runtime --self-contained false 
 if ($LASTEXITCODE -ne 0) { throw "La publication du CLI a echoue (code $LASTEXITCODE)." }
 
 Write-Host "[3/3] Copie de la documentation..."
-Copy-Item -LiteralPath (Join-Path $root "README.fr.md") -Destination $outputPath -Force
+Copy-Item -LiteralPath (Join-Path $root "README.md") -Destination $outputPath -Force
 $docsSource = Join-Path $root "docs"
 if (Test-Path -LiteralPath $docsSource) {
     Copy-Item -LiteralPath $docsSource -Destination $outputPath -Recurse -Force
