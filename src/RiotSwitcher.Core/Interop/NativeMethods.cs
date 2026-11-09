@@ -80,6 +80,9 @@ public static class NativeMethods
     [DllImport("dwmapi.dll", CharSet = CharSet.Unicode)]
     public static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out RECT pvAttribute, int cbAttribute);
 
+    [DllImport("dwmapi.dll", CharSet = CharSet.Unicode)]
+    public static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out int pvAttribute, int cbAttribute);
+
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT
     {

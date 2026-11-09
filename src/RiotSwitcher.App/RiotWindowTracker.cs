@@ -6,7 +6,7 @@ namespace RiotSwitcher.App;
 
 /// <summary>
 /// Détecte l'apparition/disparition de la fenêtre principale du Riot Client.
-/// WinEventHook pour la réactivité + timer de secours (5 s), très peu de CPU.
+/// WinEventHook pour la réactivité + timer de secours (2 s), très peu de CPU.
 /// </summary>
 internal sealed class RiotWindowTracker : IDisposable
 {
@@ -15,6 +15,7 @@ internal sealed class RiotWindowTracker : IDisposable
     private readonly System.Windows.Forms.Timer _fallback;
     private readonly AppNativeMethods.WinEventDelegate _callback;
     private IntPtr _hook;
+    private IntPtr _foregroundHook;
     private IntPtr _currentHandle;
     private bool _started;
 
@@ -27,7 +28,7 @@ internal sealed class RiotWindowTracker : IDisposable
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _logger = logger;
         _callback = OnWinEvent;
-        _fallback = new System.Windows.Forms.Timer { Interval = 5000 };
+        _fallback = new System.Windows.Forms.Timer { Interval = 2000 };
         _fallback.Tick += (_, _) => Check();
     }
 
@@ -45,8 +46,19 @@ internal sealed class RiotWindowTracker : IDisposable
             0,
             AppNativeMethods.WINEVENT_OUTOFCONTEXT | AppNativeMethods.WINEVENT_SKIPOWNPROCESS);
 
+        // Suit aussi les changements de fenêtre active : l'overlay doit disparaître
+        // quand le Riot Client est recouvert ou caché, et revenir quand il est visible.
+        _foregroundHook = AppNativeMethods.SetWinEventHook(
+            AppNativeMethods.EVENT_SYSTEM_FOREGROUND,
+            AppNativeMethods.EVENT_SYSTEM_FOREGROUND,
+            IntPtr.Zero,
+            _callback,
+            0,
+            0,
+            AppNativeMethods.WINEVENT_OUTOFCONTEXT | AppNativeMethods.WINEVENT_SKIPOWNPROCESS);
+
         _fallback.Start();
-        _logger?.Info($"Tracker démarré (hook={_hook}).");
+        _logger?.Info($"Tracker démarré (hook={_hook}, foreground={_foregroundHook}).");
         Check();
     }
 
@@ -85,7 +97,7 @@ internal sealed class RiotWindowTracker : IDisposable
         {
             _logger?.Info(window is null
                 ? "Tracker : fenêtre Riot Client absente."
-                : $"Tracker : fenêtre Riot Client détectée hwnd={window.Handle}.");
+                : $"Tracker : fenêtre Riot Client détectée hwnd={window.Handle} pid={window.ProcessId} rect=({window.X},{window.Y},{window.Width}x{window.Height}).");
             _currentHandle = window?.Handle ?? IntPtr.Zero;
             try
             {
@@ -113,6 +125,12 @@ internal sealed class RiotWindowTracker : IDisposable
         {
             AppNativeMethods.UnhookWinEvent(_hook);
             _hook = IntPtr.Zero;
+        }
+
+        if (_foregroundHook != IntPtr.Zero)
+        {
+            AppNativeMethods.UnhookWinEvent(_foregroundHook);
+            _foregroundHook = IntPtr.Zero;
         }
     }
 }

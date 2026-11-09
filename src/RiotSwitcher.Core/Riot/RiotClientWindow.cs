@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using RiotSwitcher.Core.Interop;
 
@@ -35,6 +36,7 @@ public static class RiotClientWindow
                 {
                     if (!NativeMethods.IsWindowVisible(hwnd)) return true;
                     if (NativeMethods.IsIconic(hwnd)) return true;
+                    if (IsWindowCloaked(hwnd)) return true;
                     if (!string.Equals(ReadTitle(hwnd), WindowTitle, StringComparison.Ordinal)) return true;
 
                     NativeMethods.GetWindowThreadProcessId(hwnd, out var pid);
@@ -47,6 +49,11 @@ public static class RiotClientWindow
 
                     // Le splash est topmost et petit ; la fenêtre principale est ~1536x864.
                     if (topMost && (rect.Width < 1400 || rect.Height < 800)) return true;
+
+                    // Évite les fenêtres hors écran, cachées derrière l'installateur ou
+                    // réduites dans la zone de notification sans être réellement visibles.
+                    if (!IsWindowSufficientlyOnScreen(hwnd, rect)) return true;
+                    if (!IsWindowCenterVisible(hwnd, (int)pid, rect)) return true;
 
                     if (best is null || (long)rect.Width * rect.Height > (long)best.Width * best.Height)
                     {
@@ -84,6 +91,96 @@ public static class RiotClientWindow
         var builder = new StringBuilder(length + 1);
         NativeMethods.GetWindowText(hwnd, builder, builder.Capacity);
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Détecte les fenêtres masquées par le gestionnaire de fenêtres (autre bureau virtuel,
+    /// fenêtre « cloaked » par le shell, etc.) alors que IsWindowVisible reste vrai.
+    /// </summary>
+    private static bool IsWindowCloaked(IntPtr hwnd)
+    {
+        try
+        {
+            var hr = NativeMethods.DwmGetWindowAttribute(
+                hwnd,
+                NativeMethods.DWMWA_CLOAKED,
+                out int cloaked,
+                sizeof(int));
+
+            return hr == 0 && cloaked != 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Vérifie qu'une partie suffisante de la fenêtre est réellement dans la zone de travail
+    /// d'un écran (pas une fenêtre déplacée hors écran par l'installateur ou une mise à jour).
+    /// </summary>
+    private static bool IsWindowSufficientlyOnScreen(IntPtr hwnd, NativeMethods.RECT rect)
+    {
+        try
+        {
+            var monitor = NativeMethods.MonitorFromWindow(hwnd, NativeMethods.MONITOR_DEFAULTTONEAREST);
+            if (monitor == IntPtr.Zero) return false;
+
+            var info = new NativeMethods.MONITORINFO
+            {
+                cbSize = Marshal.SizeOf<NativeMethods.MONITORINFO>()
+            };
+
+            if (!NativeMethods.GetMonitorInfo(monitor, ref info)) return true;
+
+            var left = Math.Max(rect.Left, info.rcWork.Left);
+            var top = Math.Max(rect.Top, info.rcWork.Top);
+            var right = Math.Min(rect.Right, info.rcWork.Right);
+            var bottom = Math.Min(rect.Bottom, info.rcWork.Bottom);
+
+            var visibleWidth = Math.Max(0, right - left);
+            var visibleHeight = Math.Max(0, bottom - top);
+            var totalArea = (long)rect.Width * rect.Height;
+            var visibleArea = (long)visibleWidth * visibleHeight;
+
+            return totalArea > 0 && visibleArea * 4 >= totalArea;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Vérifie que le centre de la fenêtre Riot est bien visible : le premier élément
+    /// sous le point central doit appartenir au processus Riot (la fenêtre n'est pas
+    /// entièrement recouverte par l'installateur, une autre application ou le bureau).
+    /// </summary>
+    private static bool IsWindowCenterVisible(IntPtr hwnd, int processId, NativeMethods.RECT rect)
+    {
+        try
+        {
+            var center = new NativeMethods.POINT
+            {
+                X = rect.Left + rect.Width / 2,
+                Y = rect.Top + rect.Height / 2
+            };
+
+            var top = NativeMethods.WindowFromPoint(center);
+            if (top == IntPtr.Zero) return false;
+
+            NativeMethods.GetWindowThreadProcessId(top, out var topProcessId);
+
+            // Notre propre overlay peut être au-dessus du client : il ne doit pas
+            // être interprété comme une fenêtre étrangère qui masque le client.
+            if (topProcessId == (uint)Environment.ProcessId) return true;
+
+            return topProcessId == (uint)processId;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static bool IsRiotClientProcess(uint pid)
