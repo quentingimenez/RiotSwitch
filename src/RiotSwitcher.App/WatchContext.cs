@@ -124,10 +124,10 @@ internal sealed class WatchContext : ApplicationContext
             }
 
             // Fermer la fenêtre Riot (croix / réduction dans la zone de notification)
-            // ne quitte pas Riot Client : l'UX reste chargée en arrière-plan. On garde
-            // donc le veilleur en vie tant que le processus UI Riot existe, pour
-            // recréer l'overlay quand la fenêtre est rouverte.
-            if (IsRiotClientUiRunning())
+            // ne quitte pas forcément Riot Client : l'UX ou le service peut rester
+            // chargé en arrière-plan. On garde le veilleur en vie tant qu'un processus
+            // Riot Client tourne, pour recréer l'overlay quand la fenêtre est rouverte.
+            if (IsRiotClientAlive())
             {
                 ScheduleExitCheck();
                 return;
@@ -175,11 +175,15 @@ internal sealed class WatchContext : ApplicationContext
         _exitTimer.Start();
     }
 
-    private bool IsRiotClientUiRunning()
+    private bool IsRiotClientAlive()
     {
         try
         {
-            return _processController.FindClientUi() is not null;
+            // La fenêtre peut être fermée alors que l'UX ou le service Riot reste
+            // en arrière-plan (zone de notification). On ne quitte que lorsque tout
+            // a réellement disparu.
+            return _processController.FindClientUi() is not null
+                || _processController.FindService() is not null;
         }
         catch
         {
@@ -196,9 +200,9 @@ internal sealed class WatchContext : ApplicationContext
         if (_overlay is not null && !_overlay.IsDisposed) return;
 
         // Le client Riot peut être réduit dans la zone de notification : sa fenêtre
-        // est absente mais son processus UI tourne encore. On attend qu'il quitte
-        // réellement avant de terminer le veilleur.
-        if (IsRiotClientUiRunning()) return;
+        // est absente mais son UX ou son service tourne encore. On attend que tout
+        // ait réellement quitté avant de terminer le veilleur.
+        if (IsRiotClientAlive()) return;
 
         _exitTimer.Stop();
         Quit();

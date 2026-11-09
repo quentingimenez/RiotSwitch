@@ -4,7 +4,7 @@ public static class AppInfo
 {
     public const string ProductName = "RiotSwitch";
     public const string DisplayName = "RiotSwitch";
-    public const string Version = "1.1.6";
+    public const string Version = "1.1.7";
 
     /// <summary>
     /// Vrai pour l'exÃ©cutable autonome (single-file) : les dÃ©pendances managÃ©es
