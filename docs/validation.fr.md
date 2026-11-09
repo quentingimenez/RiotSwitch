@@ -11,7 +11,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | CLI `status` / `doctor` / `window` (lecture seule, installation réelle) | ✅ |
 | Capture des comptes A et B | ✅ compte A et compte B enregistrés dans le coffre, format PslV1 |
 | Auto-update (version, GitHub Releases, SHA-256, zip-slip) | ✅ tests unitaires (62/62) ; vérification et installation réelles validées de la release v1.0.0 vers v1.1.0 |
-| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0` à `v1.1.7` ; v1.1.3 ajoute un exécutable autonome + SHA-256, v1.1.4 ajoute l'installateur Inno Setup + SHA-256, v1.1.5 passe le zéro fond en mode par défaut, v1.1.6/v1.1.7 conservent le switcher quand la fenêtre Riot est réduite/relancée |
+| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0` à `v1.1.8` ; v1.1.3 ajoute un exécutable autonome + SHA-256, v1.1.4 ajoute l'installateur Inno Setup + SHA-256, v1.1.5 passe le zéro fond en mode par défaut, v1.1.6/v1.1.7 conservent le switcher quand la fenêtre Riot est réduite/relancée, v1.1.8 affiche le tag de version dans les paramètres |
 | Icône de l'application | ✅ logo « Twin Profiles » transparent intégré (`app.ico` multi-tailles + `Assets/logo-twin-profiles.png`), contenu agrandi dans v1.1.2 (recadrage serré sans ombre portée, 94–100 % du cadre selon la taille), icône vérifiée dans l'exe et les fenêtres |
 | API locale : authentification lockfile + lecture du PUUID | ✅ |
 | Mode veilleur caché (sans Riot) | ✅ aucune fenêtre, 0 % CPU au repos, WorkingSet ≈ 55 Mo / privé ≈ 12 Mo |
@@ -25,6 +25,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | Mode zéro fond par défaut | ✅ `AppSettings.BackgroundMode = Launcher` et `Autostart=false` par défaut, `Normalize` retombe sur Launcher, sans argument l'application démarre Riot puis quitte avec lui ; `--watch` explicite conserve le veilleur persistant (build/tests 62/62). Test réel v1.1.7 : lancement sans argument, overlay créé ; fermeture de la fenêtre Riot (UX quittée, service toujours actif) → switcher toujours actif ; réouverture par le raccourci Riot Games → overlay recréé |
 | Premier lancement WelcomeForm | ⏳ à valider |
 | Publish `dist/` | ✅ republié en 1.1.7 (`dist\RiotSwitch.exe`, `dist\cli\RiotSwitch.Cli.exe`) |
+| Tag de version dans les paramètres | ✅ version courante `v1.1.8` affichée en haut à droite de la fenêtre Paramètres ; capture 636×799 vérifiée ; titre `RiotSwitch — Paramètres` corrigé (l'ancienne constante `AppInfo.SettingsTitle` était doublement encodée) |
 
 ### Détails de l'environnement validé
 
@@ -58,6 +59,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 17. **Ordre des comptes** : `SessionVault.MoveAccount` testé vers le haut/bas (bornes incluses) et `SortAccountsAlphabetically` testé sur trois comptes ; l'ordre est relu depuis `accounts.json` après rechargement et utilisé par l'overlay et les paramètres. Interface : boutons ▲ Monter / ▼ Descendre / Trier A → Z ; l'ordre est rafraîchi dans l'overlay à la fermeture des paramètres.
 18. **Fenêtre Riot réduite dans la zone de notification (v1.1.6)** : lancement sans argument en mode zéro fond, overlay créé ; `ShowWindow(SW_HIDE)` → switcher toujours actif après 3 s ; `ShowWindow(SW_SHOWNOACTIVATE)` → overlay recréé (`handle=225381126`, `visible=True`), sans exception ni doublon.
 19. **Fermeture puis réouverture complète du Riot Client (v1.1.7)** : fermeture de la fenêtre Riot (`CloseMainWindow`) → processus UX Riot disparu, service `RiotClientServices` toujours actif, switcher toujours vivant ; relance du raccourci Riot Games → nouvelle fenêtre Riot (`hwnd=109841380`), overlay recréé (`handle=31068410`, `visible=True`), sans exception. Testé aussi avec l'application `dist` 1.1.7 laissée en fonctionnement.
+20. **Tag de version dans les paramètres (v1.1.8)** : label `v1.1.8` en haut à droite de la fenêtre Paramètres (`SettingsForm.versionTag`), build Release 0 avertissement / 0 erreur, tests 62/62 ; capture 636×799 vérifiée. Le titre de la fenêtre est corrigé : `AppInfo.SettingsTitle` contenait une chaîne doublement encodée (`RiotSwitch Ã¢â‚¬â€� ParamÃƒÂ¨tres`) et affiche désormais `RiotSwitch — Paramètres`.
 
 ### Correctif issu du test overlay
 

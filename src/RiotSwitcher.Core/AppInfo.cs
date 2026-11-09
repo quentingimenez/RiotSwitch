@@ -4,7 +4,7 @@ public static class AppInfo
 {
     public const string ProductName = "RiotSwitch";
     public const string DisplayName = "RiotSwitch";
-    public const string Version = "1.1.7";
+    public const string Version = "1.1.8";
 
     /// <summary>
     /// Vrai pour l'exÃ©cutable autonome (single-file) : les dÃ©pendances managÃ©es
@@ -45,7 +45,7 @@ public static class AppInfo
     /// <summary>Titre de la fenÃƒÂªtre cachÃƒÂ©e du veilleur (FindWindow).</summary>
     public const string WatchWindowTitle = "RiotSwitch.Watch";
 
-    public const string SettingsTitle = "RiotSwitch Ã¢â‚¬â€ ParamÃƒÂ¨tres";
+    public const string SettingsTitle = "RiotSwitch — Paramètres";
     public const string AccountsPanelTitle = "Comptes Riot";
     public const string DataFolderName = "RiotSwitch";
 }

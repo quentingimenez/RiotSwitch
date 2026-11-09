@@ -9,8 +9,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <Version>1.1.7</Version>
-    <FileVersion>1.1.7.0</FileVersion>
+    <Version>1.1.8</Version>
+    <FileVersion>1.1.8.0</FileVersion>
     <AssemblyTitle>RiotSwitch</AssemblyTitle>
     <Product>RiotSwitch</Product>
     <Description>Commutateur de comptes Riot avec overlay attachÃƒÆ’Ã‚Â© au Riot Client.</Description>

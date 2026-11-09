@@ -349,6 +349,17 @@ internal sealed class SettingsForm : Form
             _autoUpdate, _updateStatus, _checkUpdates, _installUpdate
         });
 
+        var versionTag = new Label
+        {
+            Text = $"v{AppInfo.Version}",
+            Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+            ForeColor = Color.FromArgb(128, 128, 140),
+            AutoSize = false,
+            TextAlign = ContentAlignment.MiddleRight,
+            Location = new Point(500, 18),
+            Size = new Size(100, 22)
+        };
+
         var disclaimer = new Label
         {
             Text =
@@ -379,7 +390,7 @@ internal sealed class SettingsForm : Form
 
         Controls.AddRange(new Control[]
         {
-            title, modeGroup, overlayGroup, accountsGroup, _accountsCountLabel, maintenanceGroup,
+            title, versionTag, modeGroup, overlayGroup, accountsGroup, _accountsCountLabel, maintenanceGroup,
             updatesGroup, disclaimer, ok, cancel
         });
 
