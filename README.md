@@ -54,6 +54,12 @@ Télécharge `RiotSwitch-win-x64.zip` depuis la dernière [release GitHub](https
 
 Les releases sont construites automatiquement par GitHub Actions à chaque tag `v*` : archive `RiotSwitch-win-x64.zip` + empreinte SHA-256.
 
+### Installateur Windows
+
+Chaque release fournit **`RiotSwitch-Setup-x64.exe`** : installation par utilisateur (aucun droit administrateur), raccourcis dans le menu Démarrer, désinstalleur propre et conservation de tes comptes/sauvegardes dans `%LOCALAPPDATA%\RiotSwitch` lors d'une désinstallation.
+
+L'installateur vérifie la présence de **.NET 8 Desktop Runtime (x64)** et propose la page de téléchargement s'il manque. Il ferme proprement un éventuel veilleur RiotSwitch avant de remplacer les fichiers.
+
 ### Exécutable autonome (sans installation)
 
 Chaque release fournit aussi **`RiotSwitch-win-x64.exe`**, un exécutable autonome d'environ 64 Mo : il embarque le runtime .NET, donc **aucune installation du .NET 8 Desktop Runtime n'est nécessaire**. Télécharge-le, vérifie le `.sha256` associé et lance-le directement.

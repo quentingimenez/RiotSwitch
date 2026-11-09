@@ -4,12 +4,12 @@ public static class AppInfo
 {
     public const string ProductName = "RiotSwitch";
     public const string DisplayName = "RiotSwitch";
-    public const string Version = "1.1.3";
+    public const string Version = "1.1.4";
 
     /// <summary>
-    /// Vrai pour l'exécutable autonome (single-file) : les dépendances managées
-    /// sont embarquées, donc aucun RiotSwitcher.Core.dll n'est posé à côté de l'exe.
-    /// L'auto-update de type dossier n'est alors pas proposée.
+    /// Vrai pour l'exÃ©cutable autonome (single-file) : les dÃ©pendances managÃ©es
+    /// sont embarquÃ©es, donc aucun RiotSwitcher.Core.dll n'est posÃ© Ã  cÃ´tÃ© de l'exe.
+    /// L'auto-update de type dossier n'est alors pas proposÃ©e.
     /// </summary>
     public static bool IsPortableSingleFile
     {
@@ -26,7 +26,7 @@ public static class AppInfo
         }
     }
 
-    /// <summary>DÃ©pÃ´t GitHub public utilisÃ© pour les releases et l'auto-update.</summary>
+    /// <summary>DÃƒÂ©pÃƒÂ´t GitHub public utilisÃƒÂ© pour les releases et l'auto-update.</summary>
     public const string GitHubOwner = "quentingimenez";
     public const string GitHubRepositoryName = "RiotSwitch";
     public const string GitHubRepositoryUrl = "https://github.com/quentingimenez/RiotSwitch";
@@ -39,13 +39,13 @@ public static class AppInfo
     public const string SwitchMutexName = @"Local\RiotSwitch.Switch";
     public const string VaultMutexName = @"Local\RiotSwitch.Vault";
 
-    /// <summary>Ã‰vÃ©nement posÃ© pendant un switch (pour que le mode zÃ©ro fond ne quitte pas).</summary>
+    /// <summary>Ãƒâ€°vÃƒÂ©nement posÃƒÂ© pendant un switch (pour que le mode zÃƒÂ©ro fond ne quitte pas).</summary>
     public const string SwitchingEventName = @"Local\RiotSwitch.Switching";
 
-    /// <summary>Titre de la fenÃªtre cachÃ©e du veilleur (FindWindow).</summary>
+    /// <summary>Titre de la fenÃƒÂªtre cachÃƒÂ©e du veilleur (FindWindow).</summary>
     public const string WatchWindowTitle = "RiotSwitch.Watch";
 
-    public const string SettingsTitle = "RiotSwitch â€” ParamÃ¨tres";
+    public const string SettingsTitle = "RiotSwitch Ã¢â‚¬â€ ParamÃƒÂ¨tres";
     public const string AccountsPanelTitle = "Comptes Riot";
     public const string DataFolderName = "RiotSwitch";
 }

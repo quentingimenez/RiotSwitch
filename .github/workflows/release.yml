@@ -70,6 +70,28 @@ jobs:
           Write-Host "Exécutable autonome : RiotSwitch-win-x64.exe"
           Write-Host "SHA-256 : $hash"
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup --no-progress -y
+          }
+          if (-not (Test-Path $iscc)) { throw "Inno Setup introuvable" }
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc "/DMyAppVersion=$env:VERSION" "installer\RiotSwitch.iss"
+          $setup = "dist-installer\RiotSwitch-Setup-x64-$env:VERSION.exe"
+          if (-not (Test-Path $setup)) { throw "Installateur absent : $setup" }
+          Copy-Item $setup "RiotSwitch-Setup-x64.exe" -Force
+          $hash = (Get-FileHash "RiotSwitch-Setup-x64.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  RiotSwitch-Setup-x64.exe" | Set-Content -Path "RiotSwitch-Setup-x64.exe.sha256" -NoNewline -Encoding ascii
+          Write-Host "Installateur : RiotSwitch-Setup-x64.exe"
+          Write-Host "SHA-256 : $hash"
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,4 +101,5 @@ jobs:
           gh release create $tag `
             "RiotSwitch-win-x64.zip" "RiotSwitch-win-x64.zip.sha256" `
             "RiotSwitch-win-x64.exe" "RiotSwitch-win-x64.exe.sha256" `
+            "RiotSwitch-Setup-x64.exe" "RiotSwitch-Setup-x64.exe.sha256" `
             --title "RiotSwitch $tag" --generate-notes --verify-tag
