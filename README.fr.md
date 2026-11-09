@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/quentingimenez/RiotSwitch/actions/workflows/ci.yml/badge.svg)](https://github.com/quentingimenez/RiotSwitch/actions/workflows/ci.yml)
 
+<p align="center"><img src="branding/logo-twin-profiles-transparent.png" width="128" alt="Twin Profiles — logo RiotSwitch"></p>
+
 RiotSwitch garde plusieurs comptes Riot Games connectés et permet de passer de l'un à l'autre depuis un petit overlay attaché au Riot Client, sans se déconnecter et se reconnecter à la main.
 
 > Projet personnel, non officiel et non affilié à Riot Games. À utiliser avec tes propres comptes, sur ta propre machine. Lis l'avertissement en bas de page avant utilisation.

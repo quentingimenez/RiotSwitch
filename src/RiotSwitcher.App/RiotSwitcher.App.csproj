@@ -7,9 +7,10 @@
     <AssemblyName>RiotSwitch</AssemblyName>
     <RootNamespace>RiotSwitcher.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <Version>1.1.0</Version>
-    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.1</Version>
+    <FileVersion>1.1.1.0</FileVersion>
     <AssemblyTitle>RiotSwitch</AssemblyTitle>
     <Product>RiotSwitch</Product>
     <Description>Commutateur de comptes Riot avec overlay attaché au Riot Client.</Description>

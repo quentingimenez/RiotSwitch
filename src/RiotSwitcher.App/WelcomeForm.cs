@@ -29,6 +29,7 @@ internal sealed class WelcomeForm : Form
         Font = new Font("Segoe UI", 9F);
         AutoScaleMode = AutoScaleMode.Dpi;
         BackColor = Color.FromArgb(250, 250, 252);
+        Icon = AppIcon.Get();
 
         var title = new Label
         {

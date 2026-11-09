@@ -21,6 +21,7 @@ internal sealed class PromptForm : Form
         ClientSize = new Size(360, 120);
         Font = new Font("Segoe UI", 9F);
         AutoScaleMode = AutoScaleMode.Dpi;
+        Icon = AppIcon.Get();
 
         var label = new Label
         {

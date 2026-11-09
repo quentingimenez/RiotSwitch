@@ -12,6 +12,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | Capture des comptes A et B | ✅ compte A et compte B enregistrés dans le coffre, format PslV1 |
 | Auto-update (version, GitHub Releases, SHA-256, zip-slip) | ✅ tests unitaires (62/62) ; vérification et installation réelles validées de la release v1.0.0 vers v1.1.0 |
 | Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0` et `v1.1.0` avec archive et SHA-256 |
+| Icône de l'application | ✅ logo « Twin Profiles » transparent intégré (`app.ico` multi-tailles + `Assets/logo-twin-profiles.png`), icône vérifiée dans l'exe et dans les fenêtres |
 | API locale : authentification lockfile + lecture du PUUID | ✅ |
 | Mode veilleur caché (sans Riot) | ✅ aucune fenêtre, 0 % CPU au repos, WorkingSet ≈ 55 Mo / privé ≈ 12 Mo |
 | Overlay visuel attaché | ✅ testé sur second écran : bouton 40×40, panneau déplié 340×200, clic sans vol de focus |
