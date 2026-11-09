@@ -1,10 +1,30 @@
-﻿namespace RiotSwitcher.Core;
+namespace RiotSwitcher.Core;
 
 public static class AppInfo
 {
     public const string ProductName = "RiotSwitch";
     public const string DisplayName = "RiotSwitch";
-    public const string Version = "1.1.2";
+    public const string Version = "1.1.3";
+
+    /// <summary>
+    /// Vrai pour l'exécutable autonome (single-file) : les dépendances managées
+    /// sont embarquées, donc aucun RiotSwitcher.Core.dll n'est posé à côté de l'exe.
+    /// L'auto-update de type dossier n'est alors pas proposée.
+    /// </summary>
+    public static bool IsPortableSingleFile
+    {
+        get
+        {
+            try
+            {
+                return !File.Exists(Path.Combine(AppContext.BaseDirectory, "RiotSwitcher.Core.dll"));
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
 
     /// <summary>DÃ©pÃ´t GitHub public utilisÃ© pour les releases et l'auto-update.</summary>
     public const string GitHubOwner = "quentingimenez";

@@ -51,3 +51,17 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish single-file executable
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        run: ./tools/publish-singlefile.ps1
+
+      - name: Upload single-file executable
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: RiotSwitch-win-x64-singlefile
+          path: dist-singlefile/RiotSwitch.exe
+          if-no-files-found: error
+          retention-days: 14

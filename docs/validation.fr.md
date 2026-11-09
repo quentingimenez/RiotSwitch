@@ -11,7 +11,7 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 | CLI `status` / `doctor` / `window` (lecture seule, installation réelle) | ✅ |
 | Capture des comptes A et B | ✅ compte A et compte B enregistrés dans le coffre, format PslV1 |
 | Auto-update (version, GitHub Releases, SHA-256, zip-slip) | ✅ tests unitaires (62/62) ; vérification et installation réelles validées de la release v1.0.0 vers v1.1.0 |
-| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0`, `v1.1.0`, `v1.1.1` et `v1.1.2` avec archive et SHA-256 |
+| Publication GitHub + CI | ✅ dépôt public `quentingimenez/RiotSwitch`, CI verte, releases `v1.0.0`, `v1.1.0`, `v1.1.1` et `v1.1.2` ; v1.1.3 ajoute un exécutable autonome et son SHA-256 |
 | Icône de l'application | ✅ logo « Twin Profiles » transparent intégré (`app.ico` multi-tailles + `Assets/logo-twin-profiles.png`), contenu agrandi dans v1.1.2 (recadrage serré sans ombre portée, 94–100 % du cadre selon la taille), icône vérifiée dans l'exe et les fenêtres |
 | API locale : authentification lockfile + lecture du PUUID | ✅ |
 | Mode veilleur caché (sans Riot) | ✅ aucune fenêtre, 0 % CPU au repos, WorkingSet ≈ 55 Mo / privé ≈ 12 Mo |
@@ -94,14 +94,15 @@ Ce document liste les vérifications déjà effectuées et la checklist restante
 ### Publication GitHub / CI
 
 - Dépôt public créé : `https://github.com/quentingimenez/RiotSwitch` (branche `main`).
-- CI `.github/workflows/ci.yml` : run vert sur le commit initial (restore, build Release, tests 62/62) ; sur `main`, publie et attache l'artefact téléchargeable **RiotSwitch-win-x64** (`dist/`, conservé 14 jours).
+- CI `.github/workflows/ci.yml` : run vert sur le commit initial (restore, build Release, tests 62/62) ; sur `main`, publie et attache les artefacts téléchargeables **RiotSwitch-win-x64** (`dist/`) et **RiotSwitch-win-x64-singlefile** (`dist-singlefile/RiotSwitch.exe`), conservés 14 jours.
 - Release `v1.0.0` : run vert, archive `RiotSwitch-win-x64.zip` (419 594 octets) et `RiotSwitch-win-x64.zip.sha256` publiées. L'archive extraite contient `RiotSwitch.exe` à la racine et `cli/RiotSwitch.Cli.exe` ; `--version` renvoie 1.0.0.
 - Release `v1.1.0` : run vert, archive et SHA-256 publiés, CI verte ; contrôle `RiotSwitch.Cli.exe check-update` depuis l'archive v1.0.0 → « Mise à jour disponible : v1.1.0 ».
 - Release `v1.1.1` : run vert, archive `RiotSwitch-win-x64.zip` (527 506 octets) + SHA-256 publiés ; checksum local identique, `FileVersion 1.1.1.0`, `ProductVersion 1.1.1+9ae84e9`, `--version` → `RiotSwitch 1.1.1` ; contrôle `check-update` depuis l'installation 1.1.0 → « Mise à jour disponible : v1.1.1 ».
 - Release `v1.1.2` : icône agrandie (recadrage sur le contenu, seuil alpha 96, 2 % de marge ; remplissage 94–100 % selon la taille), archive `RiotSwitch-win-x64.zip` (555 674 octets) + SHA-256 publiés ; `FileVersion 1.1.2.0`, `ProductVersion 1.1.2+c338a07`, `--version` → `RiotSwitch 1.1.2` ; `check-update` depuis l'installation 1.1.1 → « Mise à jour disponible : v1.1.2 ».
+- Release `v1.1.3` : executable autonome `RiotSwitch-win-x64.exe` (self-contained single-file, ~64 Mo, sans runtime .NET) + SHA-256, en plus du zip framework-dependent et de son checksum. La variante portable détecte `AppInfo.IsPortableSingleFile` et désactive l'auto-update (mise à jour manuelle par retéléchargement de l'exe).
 - Installation réelle : depuis l'application v1.0.0 extraite, Paramètres → « Installer la mise à jour » → téléchargement, vérification SHA-256, sauvegarde, remplacement des fichiers par `UpdateApplier`, relance du veilleur en 1.1.0 (`FileVersion 1.1.0.0`) ; journal `%TEMP%\RiotSwitch-update.log` et artefacts supprimés après validation.
 
-- Workflows : `.github/workflows/ci.yml` (push/PR : restore, build Release, tests) et `.github/workflows/release.yml` (tag `v*` : vérifie la version du code, publie l'application framework-dependent win-x64, crée l'archive + SHA-256 puis la release GitHub).
+- Workflows : `.github/workflows/ci.yml` (push/PR : restore, build Release, tests, artefacts `RiotSwitch-win-x64` et `RiotSwitch-win-x64-singlefile`) et `.github/workflows/release.yml` (tag `v*` : vérifie la version du code, publie l'application framework-dependent win-x64, crée l'archive + SHA-256, publie l'exe autonome + SHA-256 puis la release GitHub).
 
 ## Pré-requis pour la validation finale
 

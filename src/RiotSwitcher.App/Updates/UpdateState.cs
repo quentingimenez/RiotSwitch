@@ -28,6 +28,14 @@ internal static class UpdateState
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(settingsStore);
 
+        if (AppInfo.IsPortableSingleFile)
+        {
+            const string portableMessage =
+                "Version portable : mises à jour manuelles (retélécharge l'exécutable autonome).";
+            logger.Info(portableMessage);
+            return UpdateCheckResult.Failure(AppInfo.Version, portableMessage);
+        }
+
         await Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
