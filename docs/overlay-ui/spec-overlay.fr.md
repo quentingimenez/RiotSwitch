@@ -265,8 +265,12 @@ périmètre, comme aujourd’hui.
 
 ### 5.3 Notes GDI+
 
-- `AntiAliasGridFit` conservé ; la fenêtre layered ne peut pas utiliser ClearType
-  → tailles minimales §3.2.
+- Texte en `ClearTypeGridFit` (sous-pixels) : le panneau est opaque, la
+  contrainte « fenêtre layered ⇒ pas de ClearType » ne s’applique donc pas au
+  bitmap source. `AntiAliasGridFit` (rendu GDI+ grayscale non accroché à la
+  grille) donnait un texte visiblement flou à 100 % à côté du texte DirectWrite
+  du Riot Client — vérifié par capture écran 1:1 et comparaison hors écran
+  (10/11/2026). Tailles minimales §3.2 conservées.
 - Teintes opaques obligatoires pour les fonds translucides (pas d’alpha en
   composition de groupe).
 - `StringFormat` : `Trimming = EllipsisCharacter`, `NoWrap` pour les lignes,

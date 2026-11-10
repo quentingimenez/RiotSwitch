@@ -542,18 +542,31 @@ internal sealed class OverlayForm : Form
         var height = _layout.WindowHeightPx;
         if (width <= 0 || height <= 0) return;
 
-        using var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-        using (var graphics = Graphics.FromImage(bitmap))
-        {
-            graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
-            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            graphics.Clear(Color.Transparent);
-            graphics.ScaleTransform((float)_scale, (float)_scale);
-            Draw(graphics);
-        }
-
+        using var bitmap = RenderBitmap(width, height, TextHint);
         ApplyLayeredWindow(bitmap, _layout.WindowRectPx);
+    }
+
+    /// <summary>
+    /// Rendu du texte. <see cref="TextRenderingHint.AntiAliasGridFit"/> (l'ancien
+    /// rendu) laisse GDI+ dessiner des glyphes non accrochés à la grille : à
+    /// 100 %, le texte du panneau paraît flou à côté de celui du Riot Client.
+    /// ClearTypeGridFit accroche les glyphes aux sous-pixels : le texte redevient
+    /// net, comme le reste du client (vérifié par capture écran 1:1).
+    /// </summary>
+    private const TextRenderingHint TextHint = TextRenderingHint.ClearTypeGridFit;
+
+    /// <summary>Rendu hors écran du panneau complet dans son état courant.</summary>
+    private Bitmap RenderBitmap(int width, int height, TextRenderingHint hint)
+    {
+        var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        graphics.TextRenderingHint = hint;
+        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        graphics.Clear(Color.Transparent);
+        graphics.ScaleTransform((float)_scale, (float)_scale);
+        Draw(graphics);
+        return bitmap;
     }
 
     private double GetScale()
@@ -1750,7 +1763,7 @@ internal sealed class OverlayForm : Form
 
         using var bitmap = new Bitmap(1, 1);
         using var graphics = Graphics.FromImage(bitmap);
-        graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+        graphics.TextRenderingHint = TextHint;
 
         using var font = new Font("Segoe UI", 9f, FontStyle.Regular);
         using var format = CreateStatusFormat();
