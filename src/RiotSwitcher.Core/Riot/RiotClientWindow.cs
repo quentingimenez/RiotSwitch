@@ -53,7 +53,7 @@ public static class RiotClientWindow
                     // Évite les fenêtres hors écran, cachées derrière l'installateur ou
                     // réduites dans la zone de notification sans être réellement visibles.
                     if (!IsWindowSufficientlyOnScreen(hwnd, rect)) return true;
-                    if (!IsWindowCenterVisible(hwnd, (int)pid, rect)) return true;
+                    if (!IsWindowSufficientlyVisible(hwnd, (int)pid, rect)) return true;
 
                     if (best is null || (long)rect.Width * rect.Height > (long)best.Width * best.Height)
                     {
@@ -152,30 +152,57 @@ public static class RiotClientWindow
     }
 
     /// <summary>
-    /// Vérifie que le centre de la fenêtre Riot est bien visible : le premier élément
-    /// sous le point central doit appartenir au processus Riot (la fenêtre n'est pas
-    /// entièrement recouverte par l'installateur, une autre application ou le bureau).
+    /// Vérifie qu'une partie suffisante de la fenêtre Riot est réellement visible à
+    /// l'écran. Un simple test du centre est trop strict : une petite fenêtre posée
+    /// au milieu du client faisait disparaître l'overlay alors que le client restait
+    /// largement visible. On échantillonne donc une grille de points ; chaque point
+    /// est considéré comme visible s'il est couvert par le client Riot lui-même ou
+    /// par notre propre overlay (qui suit le client).
     /// </summary>
-    private static bool IsWindowCenterVisible(IntPtr hwnd, int processId, NativeMethods.RECT rect)
+    private static bool IsWindowSufficientlyVisible(IntPtr hwnd, int processId, NativeMethods.RECT rect)
     {
         try
         {
-            var center = new NativeMethods.POINT
+            // Si le client est au premier plan, il est visible par définition : pas
+            // besoin d'échantillonner (et cela évite les faux négatifs quand l'overlay
+            // ou le menu Démarrer recouvre une partie de la fenêtre).
+            if (NativeMethods.GetForegroundWindow() == hwnd) return true;
+
+            const int columns = 5;
+            const int rows = 5;
+            var visible = 0;
+            var total = 0;
+
+            for (var row = 0; row < rows; row++)
             {
-                X = rect.Left + rect.Width / 2,
-                Y = rect.Top + rect.Height / 2
-            };
+                for (var column = 0; column < columns; column++)
+                {
+                    var point = new NativeMethods.POINT
+                    {
+                        X = rect.Left + (int)((column + 0.5) * rect.Width / columns),
+                        Y = rect.Top + (int)((row + 0.5) * rect.Height / rows)
+                    };
 
-            var top = NativeMethods.WindowFromPoint(center);
-            if (top == IntPtr.Zero) return false;
+                    var top = NativeMethods.WindowFromPoint(point);
+                    if (top == IntPtr.Zero) continue;
 
-            NativeMethods.GetWindowThreadProcessId(top, out var topProcessId);
+                    NativeMethods.GetWindowThreadProcessId(top, out var topProcessId);
+                    total++;
 
-            // Notre propre overlay peut être au-dessus du client : il ne doit pas
-            // être interprété comme une fenêtre étrangère qui masque le client.
-            if (topProcessId == (uint)Environment.ProcessId) return true;
+                    // Le client Riot lui-même, ou notre overlay (même processus que
+                    // l'application qui exécute cette vérification), comptent comme
+                    // visibles. Une autre application compte comme masquant le client.
+                    if (topProcessId == (uint)processId || topProcessId == (uint)Environment.ProcessId)
+                    {
+                        visible++;
+                    }
+                }
+            }
 
-            return topProcessId == (uint)processId;
+            // Au moins 20 % de la grille doit être réellement exposée. En dessous,
+            // le client est essentiellement recouvert (installateur, autre fenêtre
+            // plein écran, etc.) et l'overlay ne doit pas apparaître.
+            return total > 0 && visible * 5 >= total;
         }
         catch
         {
