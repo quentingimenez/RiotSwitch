@@ -18,7 +18,14 @@ internal sealed class RiotWindowTracker : IDisposable
     private IntPtr _hook;
     private IntPtr _foregroundHook;
     private IntPtr _currentHandle;
+    private DateTime? _absentSinceUtc;
     private bool _started;
+
+    // Le client Electron change brièvement d'état pendant le chargement de la
+    // page (splash, première navigation, fenêtre pas encore peinte). On garde
+    // l'overlay quelques secondes avant de le détruire pour éviter les
+    // apparitions/disparitions pendant que la page se rend.
+    private const int AbsentGraceMs = 3500;
 
     public event Action<RiotClientWindowInfo?>? Changed;
 
@@ -110,8 +117,27 @@ internal sealed class RiotWindowTracker : IDisposable
                 _knownHandles.Add(window.Handle);
         }
 
-        Current = window;
         var handle = window?.Handle ?? IntPtr.Zero;
+
+        if (handle == IntPtr.Zero)
+        {
+            // Fenêtre momentanément absente pendant le rendu de la page : on
+            // conserve l'overlay quelques secondes avant de le détruire.
+            var now = DateTime.UtcNow;
+            _absentSinceUtc ??= now;
+
+            if (_currentHandle != IntPtr.Zero &&
+                (now - _absentSinceUtc.Value).TotalMilliseconds < AbsentGraceMs)
+            {
+                return;
+            }
+        }
+        else
+        {
+            _absentSinceUtc = null;
+        }
+
+        Current = window;
 
         if (handle != _currentHandle)
         {
