@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500" width="1600" height="500" role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">Séquence de bascule RiotSwitch</title>
+  <desc id="flow-desc">Quatre étapes : fermer et capturer la session, la chiffrer avec DPAPI, remplacer la session du compte cible, relancer le client et vérifier le compte connecté.</desc>
+
+  <rect x="0.5" y="0.5" width="1599" height="499" rx="26" fill="#0F131A" stroke="#1E2530"/>
+
+  <!-- en-tête -->
+  <text x="70" y="72" fill="#7C8798" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="17" font-weight="600" letter-spacing="2.6">DE A À B, EN QUATRE ÉTAPES</text>
+  <text x="70" y="122" fill="#F2F4F7" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="38" font-weight="600">Séquence de bascule</text>
+  <text x="1530" y="120" fill="#7C8798" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="19" text-anchor="end">Aucune connexion réseau</text>
+
+  <!-- liaison entre les cartes -->
+  <g stroke="#39424F" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 424 248 H 448 M 440 240 L 450 248 L 440 256"/>
+    <path d="M 814 248 H 838 M 830 240 L 840 248 L 830 256"/>
+    <path d="M 1204 248 H 1228 M 1220 240 L 1230 248 L 1220 256"/>
+  </g>
+
+  <!-- carte 1 -->
+  <g>
+    <rect x="45" y="152" width="340" height="196" rx="18" fill="#141A24" stroke="#212A38"/>
+    <circle cx="91" cy="197" r="24" fill="#2A1216" stroke="#E5484D" stroke-width="2"/>
+    <text x="91" y="205" fill="#FFA3A8" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="23" font-weight="700" text-anchor="middle">1</text>
+    <text x="127" y="208" fill="#F2F4F7" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="29" font-weight="600">Capture</text>
+    <text x="77" y="265" fill="#98A2B3" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">Ferme le client proprement,</text>
+    <text x="77" y="291" fill="#98A2B3" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">puis lit la session</text>
+    <text x="77" y="317" fill="#C4CCD8" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">« Rester connecté ».</text>
+  </g>
+
+  <!-- carte 2 -->
+  <g>
+    <rect x="435" y="152" width="340" height="196" rx="18" fill="#141A24" stroke="#212A38"/>
+    <circle cx="481" cy="197" r="24" fill="#2A1216" stroke="#E5484D" stroke-width="2"/>
+    <text x="481" y="205" fill="#FFA3A8" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="23" font-weight="700" text-anchor="middle">2</text>
+    <text x="517" y="208" fill="#F2F4F7" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="29" font-weight="600">Chiffrement</text>
+    <text x="467" y="265" fill="#98A2B3" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">Chiffre la session avec</text>
+    <text x="467" y="291" fill="#98A2B3" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">DPAPI et l’enregistre</text>
+    <text x="467" y="317" fill="#C4CCD8" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">dans le coffre local.</text>
+  </g>
+
+  <!-- carte 3 -->
+  <g>
+    <rect x="825" y="152" width="340" height="196" rx="18" fill="#141A24" stroke="#212A38"/>
+    <circle cx="871" cy="197" r="24" fill="#2A1216" stroke="#E5484D" stroke-width="2"/>
+    <text x="871" y="205" fill="#FFA3A8" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="23" font-weight="700" text-anchor="middle">3</text>
+    <text x="907" y="208" fill="#F2F4F7" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="29" font-weight="600">Remplacement</text>
+    <text x="857" y="265" fill="#98A2B3" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">Écrit la session du compte</text>
+    <text x="857" y="291" fill="#98A2B3" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">cible, avec une copie</text>
+    <text x="857" y="317" fill="#C4CCD8" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">de secours.</text>
+  </g>
+
+  <!-- carte 4 -->
+  <g>
+    <rect x="1215" y="152" width="340" height="196" rx="18" fill="#141A24" stroke="#212A38"/>
+    <circle cx="1261" cy="197" r="24" fill="#12251A" stroke="#43B66B" stroke-width="2"/>
+    <text x="1261" y="205" fill="#9BE8B6" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="23" font-weight="700" text-anchor="middle">4</text>
+    <text x="1297" y="208" fill="#F2F4F7" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="29" font-weight="600">Vérification</text>
+    <text x="1247" y="265" fill="#98A2B3" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">Relance le client et</text>
+    <text x="1247" y="291" fill="#98A2B3" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">confirme le compte ;</text>
+    <text x="1247" y="317" fill="#C4CCD8" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="20">sinon, restaure l’état.</text>
+  </g>
+
+  <!-- bandeau de bas de schéma -->
+  <g>
+    <rect x="250" y="392" width="1100" height="52" rx="26" fill="#12161E" stroke="#232B38"/>
+    <circle cx="296" cy="418" r="5" fill="#E5484D"/>
+    <text x="318" y="425" fill="#A9B3C1" font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="18">Vérifié via l’API locale du client · copie de secours et rollback automatique si le compte ne correspond pas</text>
+  </g>
+</svg>
