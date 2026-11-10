@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using RiotSwitcher.App.Interop;
 using RiotSwitcher.Core.Infrastructure;
 using RiotSwitcher.Core.Riot;
+using RiotSwitcher.Core.Switching;
 
 namespace RiotSwitcher.App;
 
@@ -15,9 +17,11 @@ internal sealed class RiotWindowTracker : IDisposable
     private readonly System.Windows.Forms.Timer _fallback;
     private readonly AppNativeMethods.WinEventDelegate _callback;
     private readonly HashSet<IntPtr> _knownHandles = new();
+    private readonly HashSet<IntPtr> _raisedHandles = new();
     private IntPtr _hook;
     private IntPtr _foregroundHook;
     private IntPtr _currentHandle;
+    private DateTime _startedAtUtc;
     private DateTime? _absentSinceUtc;
     private bool _started;
 
@@ -36,7 +40,7 @@ internal sealed class RiotWindowTracker : IDisposable
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _logger = logger;
         _callback = OnWinEvent;
-        _fallback = new System.Windows.Forms.Timer { Interval = 2000 };
+        _fallback = new System.Windows.Forms.Timer { Interval = 1000 };
         _fallback.Tick += (_, _) => Check();
     }
 
@@ -44,6 +48,7 @@ internal sealed class RiotWindowTracker : IDisposable
     {
         if (_started) return;
         _started = true;
+        _startedAtUtc = DateTime.UtcNow;
 
         _hook = AppNativeMethods.SetWinEventHook(
             AppNativeMethods.EVENT_OBJECT_CREATE,
@@ -101,6 +106,11 @@ internal sealed class RiotWindowTracker : IDisposable
         var window = RiotClientWindow.Find();
         if (window is not null)
         {
+            // Le client peut démarrer derrière une autre fenêtre ou sans focus
+            // malgré une fenêtre visible. On le remonte une seule fois par handle
+            // pour que l'overlay attaché soit réellement visible.
+            RaiseIfNotForeground(window);
+
             // Une fenêtre qui a déjà été vue ne sera jamais restaurée si
             // l'utilisateur la minimise lui-même : l'overlay doit disparaître.
             _knownHandles.Add(window.Handle);
@@ -113,8 +123,21 @@ internal sealed class RiotWindowTracker : IDisposable
             // une fenêtre que l'utilisateur a volontairement minimisée.
             RestoreMinimizedOnce();
             window = RiotClientWindow.Find();
+
+            // Le client peut avoir démarré derrière une autre fenêtre (DSH, jeu,
+            // navigateur plein écran...). On le remonte une seule fois, pour un
+            // processus lancé après le veilleur, afin de rendre l'overlay visible.
+            if (window is null)
+            {
+                RaiseCoveredOnce();
+                window = RiotClientWindow.Find();
+            }
+
             if (window is not null)
+            {
+                RaiseIfNotForeground(window);
                 _knownHandles.Add(window.Handle);
+            }
         }
 
         var handle = window?.Handle ?? IntPtr.Zero;
@@ -180,6 +203,83 @@ internal sealed class RiotWindowTracker : IDisposable
         catch
         {
             // Une fenêtre peut disparaître entre l'énumération et la restauration.
+        }
+    }
+
+    private void RaiseIfNotForeground(RiotClientWindowInfo window)
+    {
+        if (!_started || SwitchSignal.IsActive()) return;
+        if (_knownHandles.Contains(window.Handle) || _raisedHandles.Contains(window.Handle)) return;
+
+        // Si le client est déjà au premier plan, rien à faire : l'overlay sera
+        // au-dessus de lui car il lui appartient.
+        if (AppNativeMethods.GetForegroundWindow() == window.Handle)
+        {
+            _raisedHandles.Add(window.Handle);
+            return;
+        }
+
+        if (!IsProcessNewerThanWatcher(window.ProcessId)) return;
+
+        _raisedHandles.Add(window.Handle);
+        _logger?.Info(
+            $"Tracker : fenêtre Riot Client sans focus hwnd={window.Handle} pid={window.ProcessId} ; remontée unique.");
+
+        try
+        {
+            if (!AppNativeMethods.ForceForeground(window.Handle))
+            {
+                _logger?.Warn(
+                    $"Tracker : impossible de remonter la fenêtre Riot Client hwnd={window.Handle} au premier plan.");
+            }
+        }
+        catch
+        {
+            // Une fenêtre peut disparaître entre l'énumération et la remontée.
+        }
+    }
+
+    private void RaiseCoveredOnce()
+    {
+        if (!_started || SwitchSignal.IsActive()) return;
+
+        var present = RiotClientWindow.FindPresent();
+        if (present is null) return;
+
+        // Uniquement une fenêtre jamais détectée (lancée pendant que le veilleur
+        // tournait), et une seule fois par handle.
+        if (_knownHandles.Contains(present.Handle) || _raisedHandles.Contains(present.Handle)) return;
+        if (!IsProcessNewerThanWatcher(present.ProcessId)) return;
+
+        _raisedHandles.Add(present.Handle);
+
+        _logger?.Info(
+            $"Tracker : fenêtre Riot Client lancée en arrière-plan hwnd={present.Handle} pid={present.ProcessId} ; remontée unique.");
+
+        try
+        {
+            if (!AppNativeMethods.ForceForeground(present.Handle))
+            {
+                _logger?.Warn(
+                    $"Tracker : impossible de remonter la fenêtre Riot Client hwnd={present.Handle} au premier plan.");
+            }
+        }
+        catch
+        {
+            // Une fenêtre peut disparaître entre l'énumération et la remontée.
+        }
+    }
+
+    private bool IsProcessNewerThanWatcher(int processId)
+    {
+        try
+        {
+            using var process = Process.GetProcessById(processId);
+            return process.StartTime.ToUniversalTime() >= _startedAtUtc;
+        }
+        catch
+        {
+            return false;
         }
     }
 

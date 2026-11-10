@@ -144,6 +144,66 @@ public static class RiotClientWindow
         return best;
     }
 
+    /// <summary>
+    /// Cherche une fenêtre principale Riot Client visible et non minimisée, même
+    /// totalement recouverte par une autre application. Le tracker s'en sert pour
+    /// remonter le client une seule fois lorsqu'il vient d'être lancé derrière une
+    /// autre fenêtre (par exemple un client de messagerie en plein écran).
+    /// </summary>
+    public static RiotClientWindowInfo? FindPresent()
+    {
+        RiotClientWindowInfo? best = null;
+
+        try
+        {
+            NativeMethods.EnumWindows((hwnd, _) =>
+            {
+                try
+                {
+                    if (!NativeMethods.IsWindowVisible(hwnd)) return true;
+                    if (NativeMethods.IsIconic(hwnd)) return true;
+                    if (IsWindowCloaked(hwnd)) return true;
+                    if (!string.Equals(ReadTitle(hwnd), WindowTitle, StringComparison.Ordinal)) return true;
+
+                    NativeMethods.GetWindowThreadProcessId(hwnd, out var pid);
+                    if (!IsRiotClientProcess(pid)) return true;
+                    if (!NativeMethods.GetWindowRect(hwnd, out var rect)) return true;
+                    if (rect.Width < MinWidth || rect.Height < MinHeight) return true;
+
+                    var exStyle = (uint)NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_EXSTYLE);
+                    var topMost = (exStyle & (uint)NativeMethods.WS_EX_TOPMOST) != 0;
+                    if (topMost && (rect.Width < 1400 || rect.Height < 800)) return true;
+                    if (!IsWindowSufficientlyOnScreen(hwnd, rect)) return true;
+
+                    if (best is null || (long)rect.Width * rect.Height > (long)best.Width * best.Height)
+                    {
+                        best = new RiotClientWindowInfo(
+                            hwnd,
+                            (int)pid,
+                            WindowTitle,
+                            rect.Left,
+                            rect.Top,
+                            rect.Width,
+                            rect.Height,
+                            topMost);
+                    }
+                }
+                catch
+                {
+                    // Fenêtre disparue pendant l'énumération : ignorer.
+                }
+
+                return true;
+            }, IntPtr.Zero);
+        }
+        catch
+        {
+            return null;
+        }
+
+        return best;
+    }
+
     private static string ReadTitle(IntPtr hwnd)
     {
         var length = NativeMethods.GetWindowTextLength(hwnd);
