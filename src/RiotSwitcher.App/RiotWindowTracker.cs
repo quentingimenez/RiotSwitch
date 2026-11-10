@@ -14,6 +14,7 @@ internal sealed class RiotWindowTracker : IDisposable
     private readonly IAppLogger? _logger;
     private readonly System.Windows.Forms.Timer _fallback;
     private readonly AppNativeMethods.WinEventDelegate _callback;
+    private readonly HashSet<IntPtr> _knownHandles = new();
     private IntPtr _hook;
     private IntPtr _foregroundHook;
     private IntPtr _currentHandle;
@@ -91,6 +92,24 @@ internal sealed class RiotWindowTracker : IDisposable
         if (!_started) return;
 
         var window = RiotClientWindow.Find();
+        if (window is not null)
+        {
+            // Une fenêtre qui a déjà été vue ne sera jamais restaurée si
+            // l'utilisateur la minimise lui-même : l'overlay doit disparaître.
+            _knownHandles.Add(window.Handle);
+        }
+        else
+        {
+            // Le client vient parfois de démarrer réduit (ou son état de fenêtre
+            // a été restauré ainsi après une mise à jour). On le restaure une
+            // seule fois pour laisser l'overlay s'afficher, sans jamais rouvrir
+            // une fenêtre que l'utilisateur a volontairement minimisée.
+            RestoreMinimizedOnce();
+            window = RiotClientWindow.Find();
+            if (window is not null)
+                _knownHandles.Add(window.Handle);
+        }
+
         Current = window;
         var handle = window?.Handle ?? IntPtr.Zero;
 
@@ -113,6 +132,28 @@ internal sealed class RiotWindowTracker : IDisposable
         {
             // Même fenêtre : rafraîchir ses coordonnées.
             Current = window;
+        }
+    }
+
+    private void RestoreMinimizedOnce()
+    {
+        if (!_started) return;
+
+        var minimized = RiotClientWindow.FindMinimized();
+        if (minimized is null) return;
+
+        if (!_knownHandles.Add(minimized.Handle)) return;
+
+        _logger?.Info(
+            $"Tracker : fenêtre Riot Client minimisée détectée hwnd={minimized.Handle} pid={minimized.ProcessId} ; restauration unique.");
+
+        try
+        {
+            AppNativeMethods.ShowWindow(minimized.Handle, AppNativeMethods.SW_RESTORE);
+        }
+        catch
+        {
+            // Une fenêtre peut disparaître entre l'énumération et la restauration.
         }
     }
 

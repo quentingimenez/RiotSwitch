@@ -38,6 +38,7 @@ Aucun processus Windows, service, pilote, icône de notification ou injection El
 - Une fenêtre message-only permet aux autres instances de demander l'ouverture des paramètres ou la fermeture.
 - `RiotWindowTracker` combine `SetWinEventHook` (création/destruction/affichage/déplacement de fenêtres, changement de fenêtre active) et un timer de secours de 2 secondes.
 - Tant qu'aucune fenêtre du Riot Client n'est visible, aucun overlay n'existe : pas de fenêtre, pas de dessin, pas d'activité CPU mesurable.
+- Si une fenêtre principale Riot Client existe mais est minimisée, `RiotClientWindow.FindMinimized()` la signale au tracker, qui la restaure **une seule fois** (`SW_RESTORE`) pour permettre l'affichage de l'overlay. Les handles déjà vus sont mémorisés : une minimisation volontaire de l'utilisateur n'est jamais annulée.
 - Le veilleur compacte sa mémoire de travail au repos : `GC.Collect` puis `EmptyWorkingSet` (psapi) déclenché 2 s après le démarrage puis toutes les 10 s **uniquement si le WorkingSet dépasse 32 Mo et qu'aucun overlay n'est affiché** ; le WorkingSet redescend autour de 10–16 Mo (mesuré), privé ≈ 14–16 Mo, sans consommation CPU mesurable entre deux passages.
 - Dès que la fenêtre apparaît, l'overlay est créé et attaché comme fenêtre possédée par le Riot Client (il suit ses déplacements et disparaît avec elle).
 

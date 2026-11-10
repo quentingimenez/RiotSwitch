@@ -84,6 +84,66 @@ public static class RiotClientWindow
         return best;
     }
 
+    /// <summary>
+    /// Cherche une fenêtre principale Riot Client réduite (minimisée). Elle n'est
+    /// volontairement pas retenue par <see cref="Find"/> puisque l'overlay ne doit
+    /// apparaître que sur une fenêtre réellement visible. Le tracker s'en sert pour
+    /// restaurer une seule fois le client si l'utilisateur vient de le lancer alors
+    /// qu'il s'est ouvert réduit.
+    /// </summary>
+    public static RiotClientWindowInfo? FindMinimized()
+    {
+        RiotClientWindowInfo? best = null;
+
+        try
+        {
+            NativeMethods.EnumWindows((hwnd, _) =>
+            {
+                try
+                {
+                    if (!NativeMethods.IsWindowVisible(hwnd)) return true;
+                    if (!NativeMethods.IsIconic(hwnd)) return true;
+                    if (!string.Equals(ReadTitle(hwnd), WindowTitle, StringComparison.Ordinal)) return true;
+
+                    NativeMethods.GetWindowThreadProcessId(hwnd, out var pid);
+                    if (!IsRiotClientProcess(pid)) return true;
+
+                    var exStyle = (uint)NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_EXSTYLE);
+                    var topMost = (exStyle & (uint)NativeMethods.WS_EX_TOPMOST) != 0;
+
+                    // Exclut le splash (topmost) ; la fenêtre principale ne l'est pas.
+                    if (topMost) return true;
+
+                    if (!NativeMethods.GetWindowRect(hwnd, out var rect)) return true;
+
+                    best = new RiotClientWindowInfo(
+                        hwnd,
+                        (int)pid,
+                        WindowTitle,
+                        rect.Left,
+                        rect.Top,
+                        rect.Width,
+                        rect.Height,
+                        false);
+
+                    return false;
+                }
+                catch
+                {
+                    // Fenêtre disparue pendant l'énumération : ignorer.
+                }
+
+                return true;
+            }, IntPtr.Zero);
+        }
+        catch
+        {
+            return null;
+        }
+
+        return best;
+    }
+
     private static string ReadTitle(IntPtr hwnd)
     {
         var length = NativeMethods.GetWindowTextLength(hwnd);

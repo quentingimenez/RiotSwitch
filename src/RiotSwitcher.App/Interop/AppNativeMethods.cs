@@ -36,6 +36,7 @@ internal static class AppNativeMethods
     public const int HWND_BROADCAST = 0xFFFF;
     public const int SW_HIDE = 0;
     public const int SW_SHOWNOACTIVATE = 4;
+    public const int SW_RESTORE = 9;
 
     public const uint SWP_NOSIZE = 0x0001;
     public const uint SWP_NOMOVE = 0x0002;
