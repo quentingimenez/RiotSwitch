@@ -32,20 +32,20 @@ Aucun processus Windows, service, pilote, icône de notification ou injection El
 
 ## Modes d'exécution
 
-### Mode zéro fond (par défaut, `--launch-riot --ephemeral`)
+### Mode veilleur (par défaut, `--watch`)
 
-- Sans argument et avec `BackgroundMode = Launcher`, RiotSwitch démarre le Riot Client puis s'exécute en mode veilleur.
-- Quand la fenêtre du Riot Client disparaît, le veilleur quitte (`exitOnClientClose` + délai de grâce de 30 s au démarrage pour laisser le client s'ouvrir).
-- Aucun processus RiotSwitch ne reste une fois le Riot Client fermé.
-- Un `--watch` explicite conserve le veilleur persistant, même si `Launcher` est configuré.
-
-### Mode veilleur (`--watch`)
-
-- Un seul processus caché (mutex `Local\RiotSwitch.Watch`).
+- Un seul processus caché (mutex `Local\RiotSwitch.Watch`), démarré avec Windows via le raccourci Startup lorsque `Autostart=true`.
 - Une fenêtre message-only permet aux autres instances de demander l'ouverture des paramètres ou la fermeture.
-- `RiotWindowTracker` combine `SetWinEventHook` (création/destruction/affichage/déplacement de fenêtres) et un timer de secours de 5 secondes.
+- `RiotWindowTracker` combine `SetWinEventHook` (création/destruction/affichage/déplacement de fenêtres, changement de fenêtre active) et un timer de secours de 2 secondes.
 - Tant qu'aucune fenêtre du Riot Client n'est visible, aucun overlay n'existe : pas de fenêtre, pas de dessin, pas d'activité CPU mesurable.
+- Le veilleur compacte sa mémoire de travail au repos : `GC.Collect` puis `EmptyWorkingSet` (psapi) déclenché 2 s après le démarrage puis toutes les 10 s **uniquement si le WorkingSet dépasse 32 Mo et qu'aucun overlay n'est affiché** ; le WorkingSet redescend autour de 10–16 Mo (mesuré), privé ≈ 14–16 Mo, sans consommation CPU mesurable entre deux passages.
 - Dès que la fenêtre apparaît, l'overlay est créé et attaché comme fenêtre possédée par le Riot Client (il suit ses déplacements et disparaît avec elle).
+
+### Mode zéro fond (`--launch-riot --ephemeral`)
+
+- Aucun processus RiotSwitch ne reste une fois le Riot Client fermé.
+- Le zéro fond ne peut démarrer que via le raccourci « Riot Client (Switch) » (`--launch-riot --ephemeral`) ou explicitement en ligne de commande : sans processus en arrière-plan, RiotSwitch ne peut pas voir un lancement Riot normal.
+- Quand la fenêtre du Riot Client disparaît, le veilleur quitte (`exitOnClientClose` + délai de grâce de 30 s au démarrage pour laisser le client s'ouvrir).
 
 ### Autres modes
 
@@ -220,5 +220,5 @@ Dans la majorité des cas, le fichier de session suffit. Si un jour une session 
 - Les formats DPoP (`is_dpop_bound: true`) ne sont pas pris en charge ; ils sont refusés plutôt que cassés.
 - Le format exact du YAML peut changer avec une mise à jour de Riot ; le lecteur est tolérant mais devra peut-être être adapté.
 - Le client Riot peut tourner élevé (administrateur) sur certaines installations ; RiotSwitch ne s'auto-élève pas.
-- Le seuil mémoire du veilleur est mesuré autour de 55 Mo de WorkingSet (~12 Mo privés) ; c'est le coût du runtime .NET/WinForms, pas de l'overlay (qui n'existe pas quand le client est fermé).
+- Le seuil mémoire du veilleur est mesuré autour de 62 Mo de WorkingSet au démarrage, puis compacté autour de 10–16 Mo (privé ≈ 14–16 Mo, CPU ≈ 0,3 % d'un cœur en mesure précise / 0 % affiché) par le trim déclenché au-delà de 32 Mo ; c'est le coût du runtime .NET/WinForms, pas de l'overlay (qui n'existe pas quand le client est fermé).
 - L'overlay n'est pas dans le DOM du client : il ne suit pas le rendu interne, seulement la fenêtre. Il est ancré à la fenêtre et passe derrière elle quand elle passe derrière.

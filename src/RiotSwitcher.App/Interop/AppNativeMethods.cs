@@ -187,6 +187,12 @@ internal static class AppNativeMethods
     [DllImport("user32.dll")]
     public static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr GetCurrentProcess();
+
+    [DllImport("psapi.dll", SetLastError = true)]
+    public static extern bool EmptyWorkingSet(IntPtr hProcess);
+
     public static void SetOwner(IntPtr hwnd, IntPtr owner)
     {
         if (IntPtr.Size == 8)

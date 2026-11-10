@@ -92,13 +92,14 @@ internal sealed class RiotWindowTracker : IDisposable
 
         var window = RiotClientWindow.Find();
         Current = window;
+        var handle = window?.Handle ?? IntPtr.Zero;
 
-        if (window?.Handle != _currentHandle)
+        if (handle != _currentHandle)
         {
             _logger?.Info(window is null
                 ? "Tracker : fenêtre Riot Client absente."
                 : $"Tracker : fenêtre Riot Client détectée hwnd={window.Handle} pid={window.ProcessId} rect=({window.X},{window.Y},{window.Width}x{window.Height}).");
-            _currentHandle = window?.Handle ?? IntPtr.Zero;
+            _currentHandle = handle;
             try
             {
                 Changed?.Invoke(window);

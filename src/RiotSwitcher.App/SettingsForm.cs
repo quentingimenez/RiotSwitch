@@ -84,20 +84,20 @@ internal sealed class SettingsForm : Form
             Size = new Size(580, 148)
         };
 
-        _launcherMode = new RadioButton
+        _watchMode = new RadioButton
         {
-            Text = "Zéro fond (par défaut, lancé depuis le raccourci Riot Client (Switch))",
-            Checked = settings.BackgroundMode == BackgroundMode.Launcher,
+            Text = "Veilleur en arrière-plan (par défaut)",
+            Checked = settings.BackgroundMode == BackgroundMode.Watch,
             Location = new Point(16, 24),
             Size = new Size(540, 22)
         };
 
-        _watchMode = new RadioButton
+        _launcherMode = new RadioButton
         {
-            Text = "Veilleur en arrière-plan (persistant)",
-            Checked = settings.BackgroundMode == BackgroundMode.Watch,
+            Text = "Zéro fond (lancé depuis le raccourci Riot Client (Switch))",
+            Checked = settings.BackgroundMode == BackgroundMode.Launcher,
             Location = new Point(16, 48),
-            Size = new Size(300, 22)
+            Size = new Size(540, 22)
         };
 
         _autostart = new CheckBox

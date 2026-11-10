@@ -12,11 +12,10 @@ internal static class Program
     private const string HelpText =
         "RiotSwitch — change de compte Riot sans mot de passe.\n\n" +
         "Utilisation :\n" +
-        "  RiotSwitch.exe                       Mode par défaut : zéro fond (lance Riot Client\n" +
-        "                                       et quitte avec lui)\n" +
+        "  RiotSwitch.exe                       Veilleur en arrière-plan (par défaut)\n" +
         "  RiotSwitch.exe --watch               Veilleur en arrière-plan persistant\n" +
         "  RiotSwitch.exe --launch-riot --ephemeral\n" +
-        "                                       Lance Riot Client et quitte avec lui (zéro fond)\n" +
+        "                                       Zéro fond : lance Riot Client et quitte avec lui\n" +
         "  RiotSwitch.exe --settings            Ouvre les paramètres\n" +
         "  RiotSwitch.exe --attach              Attache l'overlay au Riot Client déjà ouvert\n" +
         "  RiotSwitch.exe --version             Affiche la version\n\n" +
@@ -145,9 +144,9 @@ internal static class Program
             logger.Warn($"Raccourci de démarrage non créé : {shortcutWarning}");
         }
 
-        // Le mode par défaut est le zéro fond : sans argument et avec la configuration
-        // Launcher, on démarre Riot Client puis on s'arrête avec lui. Un --watch explicite
-        // conserve le veilleur persistant, même si Launcher est configuré.
+        // Le mode par défaut est le veilleur : sans argument et avec la configuration Watch,
+        // on reste en arrière-plan. Le zéro fond s'utilise explicitement via
+        // --launch-riot --ephemeral (ou via la configuration Launcher).
         var launcherByDefault = options.NoArguments && settings.BackgroundMode == BackgroundMode.Launcher;
         if (options.LaunchRiot || launcherByDefault)
         {

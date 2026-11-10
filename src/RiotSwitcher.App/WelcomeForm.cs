@@ -75,20 +75,20 @@ internal sealed class WelcomeForm : Form
             Size = new Size(300, 20)
         };
 
-        _launcherMode = new RadioButton
+        _watchMode = new RadioButton
         {
-            Text = "Zéro fond (par défaut) : je lance RiotSwitch depuis le raccourci Riot Client (Switch)",
-            Checked = settings.BackgroundMode == BackgroundMode.Launcher,
+            Text = "Veilleur en arrière-plan (par défaut) : discret, démarre avec Windows",
+            Checked = settings.BackgroundMode == BackgroundMode.Watch,
             Location = new Point(28, 256),
             Size = new Size(520, 22)
         };
 
-        _watchMode = new RadioButton
+        _launcherMode = new RadioButton
         {
-            Text = "Veilleur en arrière-plan (persistant, démarre avec Windows)",
-            Checked = settings.BackgroundMode == BackgroundMode.Watch,
+            Text = "Zéro fond : je lance RiotSwitch depuis le raccourci Riot Client (Switch)",
+            Checked = settings.BackgroundMode == BackgroundMode.Launcher,
             Location = new Point(28, 280),
-            Size = new Size(500, 22)
+            Size = new Size(520, 22)
         };
 
         _autostart = new CheckBox

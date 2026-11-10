@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using RiotSwitcher.App.Interop;
 using RiotSwitcher.App.Updates;
 using RiotSwitcher.Core.Infrastructure;
 using RiotSwitcher.Core.Riot;
@@ -25,7 +27,10 @@ internal sealed class WatchContext : ApplicationContext
     private readonly WatchMessageWindow _messages;
     private readonly RiotWindowTracker _tracker;
     private readonly System.Windows.Forms.Timer _exitTimer;
+    private readonly System.Windows.Forms.Timer _trimTimer;
     private readonly DateTime _graceUntil = DateTime.UtcNow.AddSeconds(30);
+
+    private bool _trimLogged;
 
     private OverlayForm? _overlay;
     private bool _seenWindow;
@@ -62,12 +67,19 @@ internal sealed class WatchContext : ApplicationContext
         _exitTimer = new System.Windows.Forms.Timer { Interval = 1000 };
         _exitTimer.Tick += (_, _) => CheckExitPending();
 
+        // Le veilleur doit rester très léger : quand aucun overlay n'est affiché,
+        // on rend périodiquement la mémoire de travail au système (page file),
+        // sans toucher au CPU entre deux passages.
+        _trimTimer = new System.Windows.Forms.Timer { Interval = 2_000 };
+        _trimTimer.Tick += (_, _) => TrimWorkingSetIfIdle();
+
         _logger.Info("WatchContext : initialisation du veilleur.");
         _tracker = new RiotWindowTracker(_dispatcher, _logger);
         _tracker.Changed += OnRiotWindowChanged;
         _tracker.Start();
 
         _ = Task.Run(CheckUpdatesInBackgroundAsync);
+        _trimTimer.Start();
     }
 
     private async Task CheckUpdatesInBackgroundAsync()
@@ -244,6 +256,42 @@ internal sealed class WatchContext : ApplicationContext
         _overlay = null;
     }
 
+    private void TrimWorkingSetIfIdle()
+    {
+        if (_quitting) return;
+        if (_overlay is { IsDisposed: false }) return;
+
+        try
+        {
+            using var process = Process.GetCurrentProcess();
+            const long trimThreshold = 32L * 1024 * 1024;
+            if (process.WorkingSet64 < trimThreshold) return;
+
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+            GC.WaitForPendingFinalizers();
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+
+            AppNativeMethods.EmptyWorkingSet(AppNativeMethods.GetCurrentProcess());
+
+            // Compactage initial rapide (2 s), puis vérification plus espacée.
+            _trimTimer.Interval = 10_000;
+
+            if (!_trimLogged)
+            {
+                process.Refresh();
+                _logger.Info(
+                    "Veilleur : mémoire de travail compactée " +
+                    $"(working set={process.WorkingSet64 / (1024 * 1024)} Mo, " +
+                    $"privée={process.PrivateMemorySize64 / (1024 * 1024)} Mo).");
+                _trimLogged = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Warn("Compactage mémoire du veilleur impossible : " + ex.Message);
+        }
+    }
+
     public void Quit()
     {
         if (_quitting) return;
@@ -287,6 +335,15 @@ internal sealed class WatchContext : ApplicationContext
         try
         {
             _exitTimer.Dispose();
+        }
+        catch
+        {
+            // Ignorer.
+        }
+
+        try
+        {
+            _trimTimer.Dispose();
         }
         catch
         {
