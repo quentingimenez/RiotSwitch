@@ -6,10 +6,14 @@ using RiotSwitcher.Core.Vault;
 namespace RiotSwitcher.Core.Switching;
 
 /// <summary>
-/// Orchestration du changement de compte : fermeture propre, capture, remplacement du YAML, relance, vérification, rollback.
+/// Orchestration du changement de compte : fermeture propre, capture, remplacement du YAML, relance, vérification.
+/// En cas de session cible expirée, le client est laissé sur l'écran de connexion (aucun retour au compte précédent) ;
+/// le rollback ne sert plus qu'au cas où le client confirme un autre compte que la cible.
 /// </summary>
 public sealed class SwitchService
 {
+    private static readonly TimeSpan DefaultVerificationTimeout = TimeSpan.FromSeconds(15);
+
     private readonly RiotPaths _paths;
     private readonly SessionVault _vault;
     private readonly IRiotProcessController _processes;
@@ -17,6 +21,7 @@ public sealed class SwitchService
     private readonly IRiotLocalApi _localApi;
     private readonly IAppLogger _logger;
     private readonly SwitchJournal _journal;
+    private readonly TimeSpan _verificationTimeout;
 
     public SwitchService(
         RiotPaths paths,
@@ -25,7 +30,8 @@ public sealed class SwitchService
         IGameGuard? gameGuard = null,
         IAppLogger? logger = null,
         SwitchJournal? journal = null,
-        IRiotLocalApi? localApi = null)
+        IRiotLocalApi? localApi = null,
+        TimeSpan? verificationTimeout = null)
     {
         _paths = paths ?? throw new ArgumentNullException(nameof(paths));
         _vault = vault ?? throw new ArgumentNullException(nameof(vault));
@@ -34,6 +40,9 @@ public sealed class SwitchService
         _gameGuard = gameGuard ?? new GameGuard();
         _journal = journal ?? new SwitchJournal(paths, _logger);
         _localApi = localApi ?? new RiotLocalApi(paths);
+        _verificationTimeout = verificationTimeout is { } timeout && timeout > TimeSpan.Zero
+            ? timeout
+            : DefaultVerificationTimeout;
     }
 
     public SwitchJournal Journal => _journal;
@@ -313,15 +322,33 @@ public sealed class SwitchService
                     "La session du compte a été installée, mais la fenêtre Riot n'est pas apparue. Vérifie le client.");
             }
 
-            if (!VerifyAccountAfterStartup(targetBundle.Session, window, TimeSpan.FromSeconds(15)))
+            var verification = VerifyAccountAfterStartup(targetBundle.Session, window, _verificationTimeout);
+
+            if (verification == AccountVerification.OtherAccount)
             {
                 var rolled = TryRollback(backup, target);
                 if (rolled) _journal.Clear();
                 return Fail(
                     SwitchOutcome.VerificationFailed,
-                    "Le client n'a pas confirmé le compte cible. Retour au compte précédent.",
+                    "Le client Riot a ouvert un autre compte que la cible. Retour au compte précédent.",
                     null,
                     rolled);
+            }
+
+            if (verification == AccountVerification.NotConfirmed)
+            {
+                // La session cible a été refusée (expirée ou révoquée) : le client est resté sur l'écran
+                // de connexion. On ne restaure surtout PAS le compte précédent, sinon l'utilisateur est
+                // renvoyé de force sur l'ancien compte. La session cible reste installée : une connexion
+                // manuelle avec ce compte écrira une session fraîche à réenregistrer dans le coffre.
+                _journal.Clear();
+                TryMarkSwitched(target);
+                TrySetLastError(
+                    target,
+                    "Session expirée : reconnecte-toi dans le client Riot, puis ajoute à nouveau le compte.");
+                return Fail(
+                    SwitchOutcome.ReconnectRequired,
+                    $"La session de {target.DisplayName} n'a pas été acceptée : le client Riot est resté sur l'écran de connexion. Connecte-toi avec ce compte, puis ajoute-le à nouveau. Aucun retour automatique au compte précédent n'a été effectué.");
             }
 
             _journal.Clear();
@@ -377,18 +404,33 @@ public sealed class SwitchService
     }
 
     /// <summary>
+    /// Résultat de la vérification du compte réellement ouvert par le client après sa relance.
+    /// </summary>
+    private enum AccountVerification
+    {
+        /// <summary>Le client a ouvert le compte cible.</summary>
+        Confirmed,
+
+        /// <summary>Le client a ouvert un autre compte que le compte cible.</summary>
+        OtherAccount,
+
+        /// <summary>Aucun compte confirmé dans le délai : le client est resté sur l'écran de connexion.</summary>
+        NotConfirmed
+    }
+
+    /// <summary>
     /// Vérifie que le client a réellement ouvert la session cible.
     /// Quand une vraie fenêtre existe, l'API locale du client est la source de vérité :
     /// le fichier YAML vient d'être écrit par nous, donc le relire ne prouve rien.
     /// En test (fenêtre factice sans handle), on retombe sur la vérification du fichier.
     /// </summary>
-    private bool VerifyAccountAfterStartup(
+    private AccountVerification VerifyAccountAfterStartup(
         RiotSessionSnapshot target,
         RiotClientWindowInfo? window,
         TimeSpan timeout)
     {
         var targetPuuid = target.Info.Puuid;
-        if (string.IsNullOrWhiteSpace(targetPuuid)) return true;
+        if (string.IsNullOrWhiteSpace(targetPuuid)) return AccountVerification.Confirmed;
 
         if (window is { Handle: not 0 })
         {
@@ -399,27 +441,29 @@ public sealed class SwitchService
                 if (!string.IsNullOrWhiteSpace(authorization?.Subject))
                 {
                     if (string.Equals(authorization.Subject, targetPuuid, StringComparison.Ordinal))
-                        return true;
+                        return AccountVerification.Confirmed;
 
                     _logger.Warn("L'API locale du client Riot signale un autre compte que la cible.");
-                    return false;
+                    return AccountVerification.OtherAccount;
                 }
 
                 Thread.Sleep(350);
             }
 
-            _logger.Warn("L'API locale du client Riot n'a pas confirmé le compte cible dans le délai imparti.");
-            return false;
+            _logger.Warn(
+                "L'API locale du client Riot n'a pas confirmé le compte cible dans le délai imparti : " +
+                "le client est probablement resté sur l'écran de connexion.");
+            return AccountVerification.NotConfirmed;
         }
 
         // Pas de fenêtre réelle exploitable (tests, mode headless) : vérification du fichier.
-        return WaitForSessionSub(target, TimeSpan.FromSeconds(8));
+        return WaitForSessionVerification(target, timeout);
     }
 
-    private bool WaitForSessionSub(RiotSessionSnapshot target, TimeSpan timeout)
+    private AccountVerification WaitForSessionVerification(RiotSessionSnapshot target, TimeSpan timeout)
     {
         var targetPuuid = target.Info.Puuid;
-        if (string.IsNullOrWhiteSpace(targetPuuid)) return true;
+        if (string.IsNullOrWhiteSpace(targetPuuid)) return AccountVerification.Confirmed;
 
         var deadline = DateTime.UtcNow + timeout;
         while (DateTime.UtcNow < deadline)
@@ -427,10 +471,16 @@ public sealed class SwitchService
             try
             {
                 var live = RiotSessionReader.ReadFile(_paths.LiveSessionFile, waitForStable: false);
-                if (live.Info.HasSession &&
-                    string.Equals(live.Info.Puuid, targetPuuid, StringComparison.Ordinal))
+                if (live.Info.HasSession)
                 {
-                    return true;
+                    if (string.Equals(live.Info.Puuid, targetPuuid, StringComparison.Ordinal))
+                        return AccountVerification.Confirmed;
+
+                    if (!string.IsNullOrWhiteSpace(live.Info.Puuid))
+                    {
+                        _logger.Warn("Le fichier de session contient un autre compte que la cible.");
+                        return AccountVerification.OtherAccount;
+                    }
                 }
             }
             catch
@@ -441,7 +491,7 @@ public sealed class SwitchService
             Thread.Sleep(300);
         }
 
-        return false;
+        return AccountVerification.NotConfirmed;
     }
 
     private bool TryRollback(BackupEntry? backup, AccountRecord? target)
@@ -489,6 +539,18 @@ public sealed class SwitchService
         catch (VaultException ex)
         {
             _logger.Warn($"Mise à jour des métadonnées du compte impossible : {ex.Message}");
+        }
+    }
+
+    private void TrySetLastError(AccountRecord target, string message)
+    {
+        try
+        {
+            _vault.SetLastError(target.Id, message);
+        }
+        catch (VaultException ex)
+        {
+            _logger.Warn($"Mise à jour de l'erreur du compte impossible : {ex.Message}");
         }
     }
 

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>capture — RiotSwitch overlay</title>
+<link rel="stylesheet" href="maquette.css">
+<style>
+  html, body { margin: 0; padding: 0; background: transparent !important; }
+  body { display: inline-block; }
+  #stage { padding: 32px; display: inline-block; }
+  #stage .shot { margin: 0; }
+  #err {
+    color: var(--red-300);
+    font: 14px 'Segoe UI', sans-serif;
+    padding: 32px;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="maquette.js"></script>
+<script>
+  window.addEventListener('load', function () {
+    var vue = new URLSearchParams(location.search).get('vue') || 'apres';
+    var stage = document.getElementById('stage');
+    try {
+      if (!window.RS || typeof window.RS.buildBoard !== 'function') {
+        throw new Error('maquette.js n’est pas chargé');
+      }
+      stage.innerHTML = window.RS.buildBoard(vue);
+      if (!stage.firstElementChild) throw new Error('vue inconnue : ' + vue);
+      document.title = 'capture — ' + vue;
+    } catch (e) {
+      stage.innerHTML = '<div id="err">' + String(e.message || e) + '</div>';
+    }
+  });
+</script>
+</body>
+</html>

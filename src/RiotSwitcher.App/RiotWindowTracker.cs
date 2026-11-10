@@ -86,6 +86,12 @@ internal sealed class RiotWindowTracker : IDisposable
     {
         if (idObject != 0) return;
 
+        // Les changements de position sont très nombreux : l'overlay suit la
+        // fenêtre avec son propre hook, et relancer ici un Find() complet à
+        // chaque déplacement serait coûteux sans rien apporter (Changed n'est
+        // émis qu'au changement de handle). Le timer de secours couvre le reste.
+        if (eventType == AppNativeMethods.EVENT_OBJECT_LOCATIONCHANGE) return;
+
         try
         {
             if (_dispatcher.IsHandleCreated)

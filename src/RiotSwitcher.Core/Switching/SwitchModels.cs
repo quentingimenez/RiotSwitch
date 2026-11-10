@@ -19,6 +19,14 @@ public enum SwitchOutcome
     AccessDenied,
     Timeout,
     RolledBack,
+
+    /// <summary>
+    /// La session cible n'a pas été acceptée (session expirée ou révoquée) : le client Riot est resté
+    /// sur l'écran de connexion. La session cible reste installée et aucun retour au compte précédent
+    /// n'a été effectué.
+    /// </summary>
+    ReconnectRequired,
+
     UnknownError
 }
 

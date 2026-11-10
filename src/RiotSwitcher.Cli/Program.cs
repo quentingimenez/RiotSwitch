@@ -193,7 +193,7 @@ internal static class Program
             SwitchOutcome.GameRunning => ExitGame,
             SwitchOutcome.SessionUnusable or SwitchOutcome.ClientNotInstalled or SwitchOutcome.ConfirmationDeclined => ExitTarget,
             SwitchOutcome.AccessDenied => ExitAccess,
-            SwitchOutcome.VerificationFailed or SwitchOutcome.RolledBack => ExitVerification,
+            SwitchOutcome.VerificationFailed or SwitchOutcome.RolledBack or SwitchOutcome.ReconnectRequired => ExitVerification,
             _ => ExitError
         };
     }

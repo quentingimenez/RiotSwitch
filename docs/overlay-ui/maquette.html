@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RiotSwitch — Maquette refonte de l’overlay</title>
+<link rel="stylesheet" href="maquette.css">
+</head>
+<body>
+<main class="page">
+
+  <header>
+    <span class="eyebrow">RiotSwitch · refonte UI</span>
+    <h1>Overlay — proposition de maquette</h1>
+    <p class="lead">
+      Maquette <strong>1:1</strong> du <strong>bouton replié</strong> et du <strong>panneau de comptes</strong>.
+      Même largeur, même modèle d’interaction, même moteur de rendu : on retire le rond à initiale,
+      on remonte le contraste au niveau <strong>AA/AAA</strong> et on rend les états visibles.
+      Les paramètres ne changent pas.
+    </p>
+    <div class="meta">
+      <span class="chip"><b>v1</b> · 10/11/2026</span>
+      <span class="chip">Périmètre : <b>bouton + panneau</b></span>
+      <span class="chip">Paramètres : <b>inchangés</b></span>
+      <span class="chip">Rendu : <b>GDI+ / WinForms</b></span>
+      <span class="chip">Panneau : <b>380 DIP</b></span>
+      <span class="chip">Échelle : <b>1:1 à 96 dpi</b></span>
+    </div>
+    <nav class="toc" aria-label="Sommaire">
+      <a href="#decisions">Décisions</a>
+      <a href="#bouton">Bouton replié</a>
+      <a href="#panneau">Avant / après</a>
+      <a href="#etats">États</a>
+      <a href="#statuts">Messages</a>
+      <a href="#anatomie">Anatomie</a>
+      <a href="#contexte">En situation</a>
+      <a href="#design">Design system</a>
+      <a href="#standards">Standards</a>
+      <a href="#implementation">Implémentation</a>
+      <a href="#invariants">Invariants</a>
+    </nav>
+  </header>
+
+  <!-- 01 ================================================================ -->
+  <section id="decisions">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>Six décisions</h2>
+      <p class="sec-sub">Ce qui change, et pourquoi. Chaque décision répond à un problème mesuré de la version actuelle.</p>
+    </div>
+
+    <div class="decisions">
+      <article class="decision">
+        <div class="d-top"><span class="d-num">1</span><h3>Avatar supprimé</h3></div>
+        <p>Le rond à initiale disparaît. La ligne active se repère au <b>rail d’accent 3 px</b> et au <b>badge texte « Actuel »</b> : l’information ne repose plus sur la couleur seule (WCAG 1.4.1).</p>
+      </article>
+      <article class="decision">
+        <div class="d-top"><span class="d-num">2</span><h3>Bloc « ACTUEL » compacté</h3></div>
+        <p>Les 64 px du bloc actuel deviennent un bandeau <b>« ✓ Connecté · RiotID » de 24 px</b>. À nombre de comptes égal, le panneau est un peu plus court.</p>
+      </article>
+      <article class="decision">
+        <div class="d-top"><span class="d-num">3</span><h3>Contraste AA/AAA</h3></div>
+        <p>L’accent texte passe de #D13639 (<b>3,72:1</b>, échec AA) à #FF9C9C (<b>8,9:1</b>, AAA). Noms, titres, ID, dates et messages sont tous ≥ AA ; le texte principal est AAA.</p>
+      </article>
+      <article class="decision">
+        <div class="d-top"><span class="d-num">4</span><h3>Hiérarchie plus lisible</h3></div>
+        <p>Échelle courte : <b>15 / 14 / 12 px</b> (badge 10,5 px), poids 600 pour les noms, <b>dates tabulaires</b>, lignes de 48 px espacées de 4 px. Les textes de 8,5 à 9,5 pt disparaissent.</p>
+      </article>
+      <article class="decision">
+        <div class="d-top"><span class="d-num">5</span><h3>États complets</h3></div>
+        <p>Survol sur les lignes, les boutons, la punaise et la fermeture. <b>Barre de défilement visible</b> dès le 6<sup>e</sup> compte et messages sur <b>2 lignes</b> au lieu d’une.</p>
+      </article>
+      <article class="decision">
+        <div class="d-top"><span class="d-num">6</span><h3>Statuts sémantiques</h3></div>
+        <p>5 types, chacun avec une <b>icône ET une couleur</b> : information neutre, succès vert, avertissement ambre, erreur rouge, progression accent. Plus de statut gris uniforme.</p>
+      </article>
+    </div>
+
+    <div class="note">
+      <span aria-hidden="true">ℹ</span>
+      <span><b>Ce que la maquette n’est pas :</b> ni du WPF, ni du web embarqué, ni une réécriture. Les mêmes primitives GDI+ sont conservées (fenêtre layered, <code>DrawPanel</code>, <code>DrawAccounts</code>, <code>RoundedRect</code>) ; seuls les tokens, les tailles et quelques tracés changent.</span>
+    </div>
+  </section>
+
+  <!-- 02 ================================================================ -->
+  <section id="bouton">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Le bouton replié</h2>
+      <p class="sec-sub">Le déclencheur reste rouge : c’est la seule prise pour ouvrir l’overlay. Optimisé pour rester repérable sur un fond de jeu sombre.</p>
+    </div>
+    <div class="boards" data-board="boutons"></div>
+    <div class="note">
+      <span aria-hidden="true">↳</span>
+      <span><b>Détails :</b> rayon 9 → <b>10</b> ; dégradé #E23B41 → #A8232B (contraste blanc 4,25:1, suffisant pour une icône non textuelle) ; ombre et liseré interne conservés ; l’état appuyé enfonce le bouton (ombre interne) pour répondre au clic. Le bouton n’a pas d’état « épinglé » : c’est le panneau qui porte cette information.</span>
+    </div>
+  </section>
+
+  <!-- 03 ================================================================ -->
+  <section id="panneau">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>Le panneau — avant / après</h2>
+      <p class="sec-sub">La structure reste : titre, compte courant, liste, footer. Ce qui change est la hiérarchie, la taille des textes et le contraste.</p>
+    </div>
+    <div class="boards">
+      <div data-board="avant"></div>
+      <div data-board="apres"></div>
+    </div>
+    <div class="note">
+      <span aria-hidden="true">↔</span>
+      <span><b>Mesures :</b> la version actuelle mesure <b>16,71:1</b> sur le texte principal mais <b>3,72:1</b> sur l’accent (échec AA) et <b>3,47:1</b> sur l’accent de la ligne active. La proposition conserve <b>15,98:1</b> pour le texte principal et passe l’accent à <b>8,9:1</b>. Le panneau reste à <b>380 DIP</b> ; à 5 comptes il perd ~11 DIP de hauteur.</span>
+    </div>
+  </section>
+
+  <!-- 04 ================================================================ -->
+  <section id="etats">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>Tous les états</h2>
+      <p class="sec-sub">Vide, survol, épinglé, défilement, messages. Chaque état a été vérifié au contraste, pas seulement au goût.</p>
+    </div>
+    <div class="boards">
+      <div data-board="vide"></div>
+      <div data-board="survol"></div>
+      <div data-board="epingle"></div>
+      <div data-board="defilement"></div>
+    </div>
+    <div class="boards" style="margin-top: 26px;">
+      <div data-board="statut-avert"></div>
+      <div data-board="statut-succes"></div>
+    </div>
+    <div class="note">
+      <span aria-hidden="true">↳</span>
+      <span><b>Notes d’état :</b> le survol d’une ligne ne change pas la couleur du texte (surface-2, ratio texte 14,7:1) ; la punaise épinglée est pleine ET rouge clair ; le statut le plus long tient sur 2 lignes (le panneau grandit de 40 DIP au plus). La fenêtre n’étant pas activable (WS_EX_NOACTIVATE), il n’existe pas d’état de focus : la souris reste le seul périphérique, comme aujourd’hui.</span>
+    </div>
+  </section>
+
+  <!-- 05 ================================================================ -->
+  <section id="statuts">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>Les messages de statut</h2>
+      <p class="sec-sub">Un statut doit se lire en un coup d’œil, y compris par un daltonien : forme de l’icône + texte explicite + couleur.</p>
+    </div>
+    <div class="boards" data-board="statuts"></div>
+    <div class="note">
+      <span aria-hidden="true">↳</span>
+      <span><b>Règle :</b> la couleur seule ne porte jamais l’information. Les cinq icônes sont dessinées en GDI+ (même tracé que dans la maquette) et les couleurs sont toutes ≥ AA sur le panneau : vert 11,1:1, ambre 10,9:1, rouge 7,6:1, accent 8,9:1. Le statut est maintenant sur 2 lignes maximum avec mesure du texte.</span>
+    </div>
+  </section>
+
+  <!-- 06 ================================================================ -->
+  <section id="anatomie">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>Anatomie du panneau</h2>
+      <p class="sec-sub">Les huit zones et leur règle. C’est la référence pour l’implémentation et la revue.</p>
+    </div>
+    <div class="boards" data-board="anatomie"></div>
+  </section>
+
+  <!-- 07 ================================================================ -->
+  <section id="contexte">
+    <div class="sec-head">
+      <span class="sec-num">07</span>
+      <h2>En situation</h2>
+      <p class="sec-sub">Simulation du client Riot (contenu neutre) avec l’overlay ouvert dans le coin haut-droit.</p>
+    </div>
+    <div class="boards" data-board="contexte"></div>
+  </section>
+
+  <!-- 08 ================================================================ -->
+  <section id="design">
+    <div class="sec-head">
+      <span class="sec-num">08</span>
+      <h2>Design system</h2>
+      <p class="sec-sub">Les valeurs exactes à porter dans le code. Ratios calculés selon WCAG 2.2 (luminance relative), pas recopiés.</p>
+    </div>
+
+    <div class="ds-grid">
+      <div class="card">
+        <h3>Palette et contrastes</h3>
+        <div class="swatches" data-swatches></div>
+        <p class="note" style="margin-top: 14px; border-left-color: var(--line-2);">
+          <span>AAA ≥ 7:1 · AA ≥ 4,5:1 (texte) · UI ≥ 3:1 (composants, WCAG 1.4.11). Les surfaces et séparateurs sont décoratifs : la séparation du panneau repose sur la bordure et l’ombre.</span>
+        </p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="card">
+          <h3>Typographie (Segoe UI)</h3>
+          <table class="type-table">
+            <thead>
+              <tr><th>Rôle</th><th>Taille</th><th>Poids</th><th>GDI+</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="role">Titre panneau</td><td class="dim">15 px</td><td class="dim">600</td><td class="mono">11,25 pt Bold</td></tr>
+              <tr><td class="role">Nom de compte</td><td class="dim">14 px</td><td class="dim">600</td><td class="mono">10,5 pt Bold</td></tr>
+              <tr><td class="role">Nom connecté</td><td class="dim">12 px</td><td class="dim">600</td><td class="mono">9 pt Bold</td></tr>
+              <tr><td class="role">Riot ID</td><td class="dim">12 px</td><td class="dim">400</td><td class="mono">9 pt</td></tr>
+              <tr><td class="role">Date / méta</td><td class="dim">12 px</td><td class="dim">400</td><td class="mono">9 pt tabulaire</td></tr>
+              <tr><td class="role">Boutons</td><td class="dim">12 px</td><td class="dim">400</td><td class="mono">9 pt</td></tr>
+              <tr><td class="role">Badge « Actuel »</td><td class="dim">10,5 px</td><td class="dim">600</td><td class="mono">7,875 pt Bold</td></tr>
+            </tbody>
+          </table>
+          <p class="note" style="margin-top: 14px; border-left-color: var(--line-2);">
+            <span>Le poids 600 est rendu par <b>FontStyle.Bold</b> ; option : famille « Segoe UI Semibold » avec repli sur Bold. Aucune taille de texte porteur sous 12 px ; badge et libellés secondaires à 10,5–11 px.</span>
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Espacements</h3>
+          <div class="spacing">
+            <div class="space-item"><div class="space-bar" style="height: 4px;"></div><span class="v">4</span></div>
+            <div class="space-item"><div class="space-bar" style="height: 8px;"></div><span class="v">8</span></div>
+            <div class="space-item"><div class="space-bar" style="height: 12px;"></div><span class="v">12</span></div>
+            <div class="space-item"><div class="space-bar" style="height: 16px;"></div><span class="v">16</span></div>
+            <div class="space-item"><div class="space-bar" style="height: 24px;"></div><span class="v">24</span></div>
+            <div class="space-item"><div class="space-bar" style="height: 40px;"></div><span class="v">40</span></div>
+          </div>
+          <dl class="dim-list" style="margin-top: 14px;">
+            <dt>Panneau</dt><dd>380 DIP</dd>
+            <dt>Padding panneau</dt><dd>10 / 16 / 12</dd>
+            <dt>Header · connecté · divider</dt><dd>40 · 24 · 1</dd>
+            <dt>Rangée (pitch)</dt><dd>48 + 4</dd>
+            <dt>Footer · gap</dt><dd>36 · 8</dd>
+            <dt>Rayons : panneau / contrôles / badge</dt><dd>12 / 8 / 5</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="boards" style="margin-top: 26px;" data-board="icones"></div>
+  </section>
+
+  <!-- 09 ================================================================ -->
+  <section id="standards">
+    <div class="sec-head">
+      <span class="sec-num">09</span>
+      <h2>Standards appliqués</h2>
+      <p class="sec-sub">Des règles vérifiables, pas des goûts. Sources primaires datées du 10/11/2026 ; critères détaillés et ratios recalculés dans <a href="standards-references.md" style="color: var(--red-300);">standards-references.md</a>.</p>
+    </div>
+
+    <div class="std-grid">
+      <article class="std">
+        <div class="s-head"><h3>WCAG 2.2</h3><span class="lvl">AA / AAA</span></div>
+        <p>1.4.3 contraste 4,5:1 (AA) · 1.4.6 7:1 (AAA, titres et noms) · 1.4.11 composants 3:1 (rail, badge, barre de défilement) · 1.4.1 pas de couleur seule (rail + badge + icônes) · 2.5.8 cibles ≥ 24 × 24 px (pin/fermer 28 px, boutons 36 px, bouton replié 40 px).</p>
+      </article>
+      <article class="std">
+        <div class="s-head"><h3>APCA / WCAG 3 (brouillon)</h3><span class="lvl">garde-fou</span></div>
+        <p>Contrôle complémentaire non normatif : <b>Lc ≥ 90</b> pour le texte courant, ≥ 75 pour les textes secondaires, ≥ 45 pour les icônes et grands textes, 30 en plancher absolu. APCA pénalise les rouges sombres sur fond sombre — d’où l’accent clair #FF9C9C.</p>
+      </article>
+      <article class="std">
+        <div class="s-head"><h3>Fluent 2 (Microsoft)</h3><span class="lvl">référence</span></div>
+        <p>Échelle typographique 11–15 px, hiérarchie par le poids plutôt que par la taille, espacement sur une grille de 4, rayons 4–8, cibles 32–40 px, tons neutres plutôt que noir pur.</p>
+      </article>
+      <article class="std">
+        <div class="s-head"><h3>Material 3 (Google)</h3><span class="lvl">référence</span></div>
+        <p>State layers à 8 / 10 / 16 % pour les états (survol/appui), barres de défilement discrètes mais visibles, élévation par l’ombre, rayons de 8 à 12.</p>
+      </article>
+      <article class="std">
+        <div class="s-head"><h3>Game Accessibility Guidelines</h3><span class="lvl">jeu</span></div>
+        <p>Texte lisible sur fond de jeu, pas d’information uniquement par la couleur, cibles larges, pas de clignotement, contrôle du contraste sur les écrans sombres.</p>
+      </article>
+      <article class="std">
+        <div class="s-head"><h3>Xbox Accessibility Guidelines</h3><span class="lvl">XAG</span></div>
+        <p>Repères de lisibilité à distance et de taille de texte, contraste des éléments d’interface, messages explicites, prise en charge du daltonisme par redondance forme + texte.</p>
+      </article>
+    </div>
+
+    <div class="note">
+      <span aria-hidden="true">↳</span>
+      <span><b>Portée :</b> la maquette est une fenêtre layered sans focus clavier ; les critères 2.4.7 (focus visible) et 2.1.1 (clavier) restent hors périmètre, comme dans la version actuelle. Une évolution clavier serait un chantier séparé (voir note d’implémentation).</span>
+    </div>
+  </section>
+
+  <!-- 10 ================================================================ -->
+  <section id="implementation">
+    <div class="sec-head">
+      <span class="sec-num">10</span>
+      <h2>Implémentation GDI+</h2>
+      <p class="sec-sub">Ce que change concrètement <code>OverlayForm.cs</code>. Aucun nouveau paquet, aucun WPF, aucun timer.</p>
+    </div>
+
+    <ul class="changes">
+      <li><b>Tokens</b> : palette et tailles centralisées en constantes (fini les <code>Color.FromArgb</code> dispersés) ; grille de 4.</li>
+      <li><b>Header</b> : 52 → 40 px ; titre 11,25 pt ; pin et fermer en cibles 28 × 28 avec hover (survol).</li>
+      <li><b>Compte connecté</b> : le bloc 64 px devient une ligne de 24 px « ✓ Connecté · RiotID ».</li>
+      <li><b>Lignes</b> : avatar supprimé ; rail 3 px + badge « Actuel » ; nom 10,5 pt ; ID et date 9 pt tabulaires.</li>
+      <li><b>États</b> : hover lignes + footer + pin + fermer ; pin actif plein + accent ; appui des boutons.</li>
+      <li><b>Défilement</b> : piste et curseur dessinés à droite quand <code>_accounts.Count &gt; 5</code>, 3 px, sans changer la molette.</li>
+      <li><b>Statuts</b> : hauteur 32 px max, 2 lignes, mesure avec <code>MeasureString</code> + <code>StringFormat</code>, icône + couleur par type.</li>
+      <li><b>Icônes</b> : tracés GDI+ (plus, réglages, actualiser, coche, info, alerte, erreur) ; aucun fichier ni police d’icônes.</li>
+    </ul>
+
+    <div class="ds-grid" style="margin-top: 22px;">
+      <div class="card">
+        <h3>Garde-fous techniques</h3>
+        <ul class="bullets">
+          <li><b>Anti-aliasing</b> : <code>AntiAliasGridFit</code> conservé ; ClearType indisponible sur fenêtre layered → texte porteur ≥ 12 px, badge/libellés ≥ 10,5 px.</li>
+          <li><b>Opacité</b> : GDI+ ne compose pas les groupes → utiliser les <b>teintes opaques</b> déjà calculées (#2A181D, #3A2027).</li>
+          <li><b>Dessin</b> : <code>RoundedRect</code> existant réutilisé (rayons 12 / 8 / 5) ; ombre et bordure inchangées dans leur principe.</li>
+          <li><b>DPI</b> : tout est en DIP via <code>ScaleTransform</code> ; tester 100, 125, 150, 200 et 250 %.</li>
+          <li><b>Performance</b> : pas d’animation ; redraw sur changement d’état uniquement, comme aujourd’hui.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Plan de vérification</h3>
+        <ul class="bullets">
+          <li><b>Comptes</b> : 0, 1, 3, 5, 6, 7 et 12 comptes ; compte courant absent de la liste.</li>
+          <li><b>Noms</b> : 1 caractère, 30 caractères, caractères accentués, emoji → troncature avec ellipse.</li>
+          <li><b>Statuts</b> : les 5 types, court, long (2 lignes), panneau à 5 comptes + statut.</li>
+          <li><b>Interactions</b> : pin, drag depuis le panneau, clic extérieur, Échap, molette, switch en cours (<code>_busy</code>).</li>
+          <li><b>Contraste</b> : contrôle automatisable des ratios (script fourni dans <code>spec-overlay.fr.md</code>).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 ================================================================ -->
+  <section id="invariants">
+    <div class="sec-head">
+      <span class="sec-num">11</span>
+      <h2>Ce qui ne change pas</h2>
+      <p class="sec-sub">La refonte reste une refonte de l’overlay, pas du produit.</p>
+    </div>
+
+    <ul class="changes keep">
+      <li><b>Paramètres</b> : <code>SettingsForm.cs</code> est intouché — mêmes options, même mise en page.</li>
+      <li><b>Comportement</b> : clic bouton = déplier ; clic ligne = basculer ; clic extérieur et Échap = replier.</li>
+      <li><b>Épinglage</b> : pin = verrouille le glisser ; la position reste mémorisée.</li>
+      <li><b>Molette et 5 lignes visibles</b> : nombre de comptes affichés inchangé (la barre de défilement est le seul ajout).</li>
+      <li><b>Données</b> : ordre du coffre, Riot ID, dernière utilisation, rétention des messages.</li>
+      <li><b>Architecture</b> : aucune dépendance ajoutée, aucun fichier de ressources, même fenêtre WinForms.</li>
+      <li><b>Largeur</b> : 380 DIP conservés ; le panneau reste non activable et déplaçable.</li>
+      <li><b>Périphériques</b> : la souris reste le seul périphérique, le clavier n’est pas introduit ici.</li>
+    </ul>
+  </section>
+
+  <footer class="foot">
+    <span>RiotSwitch — proposition de refonte de l’overlay · v1 · 10/11/2026</span>
+    <span class="right">maquette.html · maquette.css · maquette.js</span>
+  </footer>
+
+</main>
+<script src="maquette.js"></script>
+</body>
+</html>

@@ -71,6 +71,25 @@ public sealed class SwitchServiceTests
         }
     }
 
+    private sealed class FakeLocalApi : IRiotLocalApi
+    {
+        public RiotAuthorizationInfo? Authorization { get; set; }
+
+        public List<string> Calls { get; } = new();
+
+        public RiotAuthorizationInfo? TryGetAuthorization(TimeSpan? timeout = null)
+        {
+            Calls.Add("authorization");
+            return Authorization;
+        }
+
+        public bool TryShowClient(TimeSpan? timeout = null)
+        {
+            Calls.Add("show");
+            return true;
+        }
+    }
+
     private sealed class FakeGameGuard : IGameGuard
     {
         public GameGuardStatus Status { get; set; } = GameGuardStatus.Allow();
@@ -85,6 +104,7 @@ public sealed class SwitchServiceTests
         public SessionVault Vault { get; }
         public FakeProcessController Processes { get; } = new();
         public FakeGameGuard Guard { get; } = new();
+        public FakeLocalApi LocalApi { get; } = new();
         public SwitchService Service { get; }
 
         public Harness()
@@ -97,8 +117,17 @@ public sealed class SwitchServiceTests
             Vault.Capture(TestData.Snapshot(File.ReadAllText(Paths.LiveSessionFile)), label: "Alpha");
             Vault.Capture(TestData.Snapshot(TestData.MakePslYaml("puuid-b", "Beta", "EUW")), label: "Beta");
 
-            Service = new SwitchService(Paths, Vault, Processes, Guard);
+            Service = new SwitchService(
+                Paths,
+                Vault,
+                Processes,
+                Guard,
+                localApi: LocalApi,
+                verificationTimeout: TimeSpan.FromMilliseconds(400));
         }
+
+        public static RiotClientWindowInfo RealClientWindow() =>
+            new(new IntPtr(42), 123, "Riot Client", 0, 0, 1536, 864, false);
 
         public RiotSessionInfo LiveSession() =>
             RiotSessionReader.Parse(File.ReadAllText(Paths.LiveSessionFile));
@@ -224,5 +253,67 @@ public sealed class SwitchServiceTests
         Assert.Equal("puuid-b", harness.LiveSession().Puuid);
         Assert.DoesNotContain("start:none", harness.Processes.Calls);
         Assert.Null(harness.Service.Journal.Load());
+    }
+
+    [Fact]
+    public void Expired_target_session_leaves_client_on_login_page()
+    {
+        using var harness = new Harness();
+        harness.Processes.Window = Harness.RealClientWindow();
+
+        var result = harness.Service.Switch(new SwitchRequest { AccountId = "puuid-b" });
+
+        Assert.Equal(SwitchOutcome.ReconnectRequired, result.Outcome);
+        Assert.False(result.RolledBack);
+        Assert.Contains("écran de connexion", result.Message);
+        Assert.NotEmpty(harness.LocalApi.Calls);
+
+        // La session cible reste installée et le client n'est ni tué ni relancé une seconde fois.
+        Assert.Equal("puuid-b", harness.LiveSession().Puuid);
+        Assert.Single(harness.Processes.Calls, call => call == "kill-stack");
+        Assert.Single(harness.Processes.Calls, call => call == "start:none");
+        Assert.Null(harness.Service.Journal.Load());
+
+        var account = harness.Vault.GetAccount("puuid-b")!;
+        Assert.NotNull(account.LastSwitchUtc);
+        Assert.Equal(
+            "Session expirée : reconnecte-toi dans le client Riot, puis ajoute à nouveau le compte.",
+            account.LastError);
+    }
+
+    [Fact]
+    public void Other_account_after_relaunch_rolls_back()
+    {
+        using var harness = new Harness();
+        harness.Processes.Window = Harness.RealClientWindow();
+        harness.LocalApi.Authorization = new RiotAuthorizationInfo("puuid-a", "EUW1", null);
+
+        var result = harness.Service.Switch(new SwitchRequest { AccountId = "puuid-b" });
+
+        Assert.Equal(SwitchOutcome.VerificationFailed, result.Outcome);
+        Assert.True(result.RolledBack);
+
+        // Le compte précédent est restauré, puis le client est relancé (deuxième cycle arrêt/démarrage).
+        Assert.Equal("puuid-a", harness.LiveSession().Puuid);
+        Assert.Equal(2, harness.Processes.Calls.Count(call => call == "kill-stack"));
+        Assert.Equal(2, harness.Processes.Calls.Count(call => call == "start:none"));
+        Assert.Equal(
+            "Switch annulé : retour au compte précédent.",
+            harness.Vault.GetAccount("puuid-b")!.LastError);
+    }
+
+    [Fact]
+    public void Confirmed_target_account_succeeds_after_relaunch()
+    {
+        using var harness = new Harness();
+        harness.Processes.Window = Harness.RealClientWindow();
+        harness.LocalApi.Authorization = new RiotAuthorizationInfo("puuid-b", "EUW1", null);
+
+        var result = harness.Service.Switch(new SwitchRequest { AccountId = "puuid-b" });
+
+        Assert.Equal(SwitchOutcome.Success, result.Outcome);
+        Assert.Equal("puuid-b", harness.LiveSession().Puuid);
+        Assert.Single(harness.Processes.Calls, call => call == "kill-stack");
+        Assert.Null(harness.Vault.GetAccount("puuid-b")!.LastError);
     }
 }

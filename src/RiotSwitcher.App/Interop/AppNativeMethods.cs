@@ -8,10 +8,15 @@ internal static class AppNativeMethods
     public const int GWL_EXSTYLE = -20;
     public const int GWL_HWNDPARENT = -8;
 
+    // Valeurs de GetWindow : parcours de l'ordre Z (fenêtres supérieures/inférieures).
+    public const uint GW_HWNDNEXT = 2;
+    public const uint GW_HWNDPREV = 3;
+
     public const int WS_EX_LAYERED = 0x00080000;
     public const int WS_EX_TOOLWINDOW = 0x00000080;
     public const int WS_EX_NOACTIVATE = 0x08000000;
     public const int WS_EX_TRANSPARENT = 0x00000020;
+    public const int WS_EX_TOPMOST = 0x00000008;
 
     public const int ULW_ALPHA = 0x02;
     public const byte AC_SRC_OVER = 0x00;
@@ -38,10 +43,15 @@ internal static class AppNativeMethods
     public const int SW_SHOWNOACTIVATE = 4;
     public const int SW_RESTORE = 9;
 
+    public static readonly IntPtr HWND_TOP = IntPtr.Zero;
+    public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+    public static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+
     public const uint SWP_NOSIZE = 0x0001;
     public const uint SWP_NOMOVE = 0x0002;
     public const uint SWP_NOZORDER = 0x0004;
     public const uint SWP_NOACTIVATE = 0x0010;
+    public const uint SWP_NOOWNERZORDER = 0x0200;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT
@@ -131,6 +141,9 @@ internal static class AppNativeMethods
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);

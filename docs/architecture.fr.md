@@ -68,12 +68,16 @@ Le splash screen est topmost et plus petit ; s'il est topmost, une taille minima
 ## Overlay
 
 - Fenêtre WinForms `WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE`, sans bordure, sans entrée dans la barre des tâches.
-- Owner = fenêtre du Riot Client (`SetWindowLongPtr(GWLP_HWNDPARENT)`), donc l'overlay passe derrière le client quand il perd le focus et se ferme avec lui.
+- Owner = fenêtre du Riot Client (`SetWindowLongPtr(GWLP_HWNDPARENT)`) : l'overlay se ferme et se réduit avec lui. L'owner ne garantit pas l'ordre Z ; l'overlay réaffirme sa place **directement au-dessus de la fenêtre Riot** (`EnsureAboveOwner()`), jamais au-dessus des autres applications quand le client perd le focus.
+- Ordre Z : `EnsureAboveOwner()` vérifie que l'overlay est au-dessus de son owner (`GetWindow(GW_HWNDPREV)`) et le replace juste au-dessus avec `SetWindowPos(..., SWP_NOACTIVATE | SWP_NOOWNERZORDER)` sinon. Appelé à l'affichage, à chaque changement de cible, au tick de secours (500 ms) et sur `EVENT_SYSTEM_FOREGROUND` quand le client redevient premier plan. Un owner topmost rend l'overlay topmost, et inversement, pour rester cohérent.
+- Suivi des déplacements : un hook `EVENT_OBJECT_LOCATIONCHANGE` filtré sur la fenêtre cible redéplace l'overlay immédiatement (mesuré à 1–2 ms, contre jusqu'à 500 ms avec le seul timer). Si seule la position change, `SetWindowPos` déplace la fenêtre layered sans redessiner ; `UpdateLayeredWindow` n'est réutilisé que si la taille de mise en page change (panneau replié/déplié, échelle DPI).
+- `RiotWindowTracker` ignore les `EVENT_OBJECT_LOCATIONCHANGE` : la position est gérée par le hook de l'overlay, et un `Find()` complet à chaque déplacement de fenêtre serait coûteux et inutile puisque `Changed` n'est émis qu'au changement de handle.
 - Rendu GDI+ dans un bitmap 32 bpp, présenté par `UpdateLayeredWindow` : pas de clignotement, pas d'animation, coins arrondis et ombre dessinés.
 - Aucune activation de fenêtre (`ShowWithoutActivation`) : cliquer sur le bouton ne vole pas le focus au client Riot ; les paramètres s'ouvrent dans une vraie boîte de dialogue.
-- Géométrie exprimée en DIP, mise à l'échelle via `GetDpiForWindow` (100–250 %), position clampée au moniteur courant.
-- Position persistée dans `settings.json` ; bouton déplaçable par glisser ; panneau refermé par clic extérieur ou Échap.
-- Épinglage : l'icône punaise de l'en-tête enregistre le bord droit et le haut de l'overlay en coordonnées écran (`overlayPinned`, `overlayPinnedRightPx`, `overlayPinnedTopPx`). Tant que l'overlay est épinglé, il ignore les déplacements de la fenêtre Riot et le glisser est désactivé. Le désépinglage reconvertit la position en offsets relatifs au client pour éviter tout saut.
+- Géométrie exprimée en DIP, mise à l'échelle via `GetDpiForWindow` (100–250 %), position clampée à la fenêtre du client avec une marge de 8 DIP sur chaque bord.
+- Position persistée dans `settings.json` ; bouton déplaçable par glisser, borné à la fenêtre du client (même pendant le glisser : `ComputeOffsetBounds`/`ApplyDragOffsets`, marge `EdgeMarginDip`) ; panneau refermé par clic extérieur ou Échap, sans fermeture pendant un glisser actif.
+- Épinglage : l'icône punaise de l'en-tête verrouille le **glisser**, pas le suivi. L'overlay reste aimanté à la fenêtre Riot (même bord droit, même haut) et continue de suivre ses déplacements, mais le glisser est désactivé (`overlayPinned`). Le désépinglage réactive le glisser sans déplacer l'overlay. Les champs `overlayPinnedRightPx`/`overlayPinnedTopPx` de l'ancien épinglage écran sont conservés pour les `settings.json` existants mais ne sont plus utilisés pour le placement (remis à zéro à l'épinglage).
+- Messages de statut : bandeau temporaire sous le panneau (`DrawStatus`), piloté par `SetStatus(text, StatusKind)` — rétention 5 s (`Info`, `Success`), 8 s (`Warning`, `Error`), aucune expiration pour `Progress` qui reste affiché jusqu'au résultat du switch. Un nouveau message remplace le précédent et relance l'échéance absolue (`_statusExpiresUtc` + timer WinForms one-shot `_statusTimer`, recalage de l'intervalle si le tick arrive avant l'échéance) ; `Collapse()` efface le statut (`ClearStatus`) pour éviter toute réapparition à la réouverture, et `StopTimers()` arrête puis libère le timer. La hauteur du panneau n'ajoute les 36 DIP du bandeau (`StatusHeightDip` 24 + `PaddingDip` 12) que lorsqu'un statut est visible ; replié, aucun statut n'est dessiné.
 - Le panneau est volontairement simple : pas de liste virtualisée, pas d'images distantes, pas de dépendance réseau.
 
 ## Lecture et validation de la session
@@ -141,8 +145,11 @@ Switch(request)
  ├─ 16. relancer le service Riot (et le produit choisi si demandé)
  ├─ 17. attendre la fenêtre (60 s)
  ├─ 18. vérifier le PUUID via l'API locale (15 s)
+ │     ├─ compte cible confirmé -> succès
+ │     ├─ autre compte confirmé -> rollback : restaurer la sauvegarde, relancer le Riot Client
+ │     └─ aucun compte confirmé (écran de connexion) -> ReconnectRequired : session cible laissée
+ │        en place, client laissé ouvert, aucun retour au compte précédent
  ├─ 19. succès -> marquer le compte, effacer le journal
- └─ échec -> rollback : restaurer la sauvegarde, relancer le Riot Client
 ```
 
 Le switch est refusé si une autre instance en effectue déjà un (mutex) ou si un jeu tourne. Un switch vers le compte déjà connecté ne fait rien.
@@ -156,7 +163,13 @@ GET https://127.0.0.1:<port>/rso-auth/v1/authorization
 Authorization: Basic riot:<mot de passe du lockfile>
 ```
 
-et compare `subject` (PUUID) au compte cible. Si le client affiche un autre compte, ou si l'API ne répond pas dans les 15 secondes, le switch est considéré comme échoué et un rollback est déclenché. Le mot de passe du lockfile n'est jamais journalisé.
+et compare `subject` (PUUID) au compte cible. Trois issues :
+
+- **compte cible confirmé** : le switch réussit ;
+- **un autre compte est confirmé** : le switch est considéré comme échoué, un rollback restaure la sauvegarde précédente et relance le client ;
+- **aucun compte n'est confirmé dans les 15 secondes** (session cible expirée ou révoquée, client resté sur l'écran de connexion) : RiotSwitch **ne fait aucun rollback**. La session cible reste installée, le client reste ouvert sur l'écran de connexion et le compte est marqué avec l'erreur « Session expirée : reconnecte-toi dans le client Riot, puis ajoute à nouveau le compte. » (`SwitchOutcome.ReconnectRequired`). C'est voulu : restaurer le compte précédent renverrait l'utilisateur de force sur l'ancien compte, alors qu'il a demandé la cible. Une connexion manuelle avec ce compte écrira une session fraîche, à réenregistrer dans le coffre.
+
+Le mot de passe du lockfile n'est jamais journalisé.
 
 ### Environnement du service et de l'UX
 
@@ -222,4 +235,4 @@ Dans la majorité des cas, le fichier de session suffit. Si un jour une session 
 - Le format exact du YAML peut changer avec une mise à jour de Riot ; le lecteur est tolérant mais devra peut-être être adapté.
 - Le client Riot peut tourner élevé (administrateur) sur certaines installations ; RiotSwitch ne s'auto-élève pas.
 - Le seuil mémoire du veilleur est mesuré autour de 62 Mo de WorkingSet au démarrage, puis compacté autour de 10–16 Mo (privé ≈ 14–16 Mo, CPU ≈ 0,3 % d'un cœur en mesure précise / 0 % affiché) par le trim déclenché au-delà de 32 Mo ; c'est le coût du runtime .NET/WinForms, pas de l'overlay (qui n'existe pas quand le client est fermé).
-- L'overlay n'est pas dans le DOM du client : il ne suit pas le rendu interne, seulement la fenêtre. Il est ancré à la fenêtre et passe derrière elle quand elle passe derrière.
+- L'overlay n'est pas dans le DOM du client : il ne suit pas le rendu interne, seulement la fenêtre. Il reste directement au-dessus de la fenêtre Riot quand elle est visible, mais passe derrière les autres applications quand le client perd le focus (comportement voulu, pas un bug).
