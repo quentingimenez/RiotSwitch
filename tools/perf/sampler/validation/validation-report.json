@@ -1,0 +1,386 @@
+{
+    "schema":  "riotswitch.perf.sampler-validation/1",
+    "generated_at_utc":  "2026-11-11T00:38:16.4773423Z",
+    "started_at_utc":  "2026-11-11T00:36:03.4856395Z",
+    "host":  {
+                 "name":  "SUPERKNACKY",
+                 "logical_processors":  16,
+                 "powershell":  "5.1.26100.9711",
+                 "os":  "Microsoft Windows NT 10.0.26200.0"
+             },
+    "worker":  {
+                   "pid":  23352,
+                   "process_name":  "powershell",
+                   "script":  "validation/DummyWorker.ps1",
+                   "duration_seconds":  240,
+                   "cpu_threads":  2,
+                   "allocated_mib":  200,
+                   "handles":  60,
+                   "io_mib":  32,
+                   "gui_objects":  true
+               },
+    "runs":  {
+                 "clean":  {
+                               "json_path":  "C:\\Users\\SuperKnacky\\code\\RiotSwitch\\tools\\perf\\sampler\\results\\validation\\clean.json",
+                               "csv_path":  "C:\\Users\\SuperKnacky\\code\\RiotSwitch\\tools\\perf\\sampler\\results\\validation\\clean.csv",
+                               "duration_s":  60.022,
+                               "sample_count":  60,
+                               "cpu_mean_pct_core":  196.62228266592041,
+                               "cpu_max_pct_core":  201.65317287655932,
+                               "private_ws_median_bytes":  295526400,
+                               "sampler_overhead":  {
+                                                        "own_cpu_seconds":  0.65625,
+                                                        "pct_one_core":  1.0934,
+                                                        "pct_machine":  0.0683,
+                                                        "avg_ms_cpu_per_sample":  10.9375,
+                                                        "measurement_window_s":  60.022,
+                                                        "note":  "Temps CPU du processus PowerShell hote pendant la boucle uniquement."
+                                                    },
+                               "cross_check":  null
+                           },
+                 "threads":  {
+                                 "json_path":  "C:\\Users\\SuperKnacky\\code\\RiotSwitch\\tools\\perf\\sampler\\results\\validation\\threads.json",
+                                 "csv_path":  "C:\\Users\\SuperKnacky\\code\\RiotSwitch\\tools\\perf\\sampler\\results\\validation\\threads.csv",
+                                 "duration_s":  60.023,
+                                 "sample_count":  60,
+                                 "cpu_mean_pct_core":  197.12177174767697,
+                                 "cross_check":  {
+                                                     "enabled":  true,
+                                                     "method":  "Get-Counter (chemins localises detectes dynamiquement)",
+                                                     "detection":  "localise",
+                                                     "counter_set":  "Processus",
+                                                     "instance":  "powershell#10",
+                                                     "cpu_counter":  "\\Processus(powershell#10)\\% temps processeur",
+                                                     "ws_counter":  "\\Processus(powershell#10)\\Plage de travail",
+                                                     "errors":  [
+
+                                                                ],
+                                                     "cpu":  {
+                                                                 "sample_count":  61,
+                                                                 "sampler_mean_pct_core":  197.12177174767695,
+                                                                 "counter_mean_pct_core":  197.15902157765058,
+                                                                 "abs_diff_pct_core":  0.037249829973632131,
+                                                                 "rel_diff_pct":  0.018893292163636236,
+                                                                 "tolerance_pct":  3,
+                                                                 "pass":  true
+                                                             },
+                                                     "working_set":  {
+                                                                         "sampler_last_bytes":  362381312,
+                                                                         "counter_last_bytes":  362381312,
+                                                                         "abs_diff_bytes":  0,
+                                                                         "rel_diff_pct":  0,
+                                                                         "tolerance_pct":  3,
+                                                                         "pass":  true
+                                                                     },
+                                                     "overall_pass":  true
+                                                 },
+                                 "threads_cpu":  {
+                                                     "included":  true,
+                                                     "method":  "NtQuerySystemInformation(SystemProcessInformation) + GetThreadTimes de secours, deltas par intervalle",
+                                                     "thread_count_seen":  19,
+                                                     "attributed_cpu_seconds":  118.296875,
+                                                     "coverage_pct_of_process_cpu":  99.97,
+                                                     "top":  [
+                                                                 {
+                                                                     "rank":  1,
+                                                                     "tid":  37728,
+                                                                     "cpu_seconds":  59.25,
+                                                                     "pct_of_process_cpu":  50.07,
+                                                                     "pct_of_one_core":  98.71
+                                                                 },
+                                                                 {
+                                                                     "rank":  2,
+                                                                     "tid":  20772,
+                                                                     "cpu_seconds":  58.984375,
+                                                                     "pct_of_process_cpu":  49.85,
+                                                                     "pct_of_one_core":  98.27
+                                                                 },
+                                                                 {
+                                                                     "rank":  3,
+                                                                     "tid":  34144,
+                                                                     "cpu_seconds":  0.0625,
+                                                                     "pct_of_process_cpu":  0.05,
+                                                                     "pct_of_one_core":  0.1
+                                                                 }
+                                                             ]
+                                                 },
+                                 "sampler_overhead":  {
+                                                          "own_cpu_seconds":  0.796875,
+                                                          "pct_one_core":  1.3276,
+                                                          "pct_machine":  0.083,
+                                                          "avg_ms_cpu_per_sample":  13.2812,
+                                                          "measurement_window_s":  60.023,
+                                                          "note":  "Temps CPU du processus PowerShell hote pendant la boucle uniquement."
+                                                      }
+                             },
+                 "snapshot_before":  {
+                                         "schema":  "riotswitch.perf.process-snapshot/1",
+                                         "mode":  "snapshot",
+                                         "tool":  {
+                                                      "name":  "ProcessSampler",
+                                                      "version":  "1.0.0",
+                                                      "script":  "ProcessSampler.ps1",
+                                                      "native_helper":  "ProcessNative.cs",
+                                                      "powershell_version":  "5.1.26100.9711",
+                                                      "os":  "Microsoft Windows NT 10.0.26200.0"
+                                                  },
+                                         "label":  "validation-snapshot-before",
+                                         "generated_at_utc":  "2026-11-11T00:36:06.8074336Z",
+                                         "host":  {
+                                                      "name":  "SUPERKNACKY",
+                                                      "user":  "SuperKnacky",
+                                                      "logical_processors":  16,
+                                                      "os_caption":  "Windows_NT"
+                                                  },
+                                         "target":  {
+                                                        "pid":  23352,
+                                                        "process_name":  "powershell",
+                                                        "exe_path":  "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                                                        "process_start_iso":  "2026-11-11T00:36:03.5173100Z",
+                                                        "uptime_s":  3.29,
+                                                        "sampling_access_rights":  "0x410",
+                                                        "private_working_set_supported":  true
+                                                    },
+                                         "counters":  {
+                                                          "cpu_total_seconds":  6.484375,
+                                                          "cpu_user_seconds":  5.96875,
+                                                          "cpu_kernel_seconds":  0.515625,
+                                                          "ws_bytes":  360325120,
+                                                          "private_ws_bytes":  294801408,
+                                                          "commit_bytes":  354140160,
+                                                          "peak_ws_bytes":  427970560,
+                                                          "handles":  723,
+                                                          "gdi_objects":  19,
+                                                          "user_objects":  20,
+                                                          "threads":  29,
+                                                          "io_read_bytes":  34292964,
+                                                          "io_write_bytes":  33884021,
+                                                          "io_other_bytes":  107876,
+                                                          "io_read_operations":  176,
+                                                          "io_write_operations":  102,
+                                                          "io_other_operations":  5995,
+                                                          "page_faults":  122772
+                                                      },
+                                         "sampler_overhead":  {
+                                                                  "snapshot_read_ms":  24.33,
+                                                                  "note":  "Duree murale de la lecture snapshot (hors ouverture/fermeture du handle)."
+                                                              },
+                                         "warnings":  [
+
+                                                      ],
+                                         "notes":  [
+                                                       "Mode snapshot : une seule lecture P/Invoke, aucune boucle, aucun CSV.",
+                                                       "Les compteurs E/S et les defauts de page sont CUMULES depuis le demarrage du processus (pas des deltas).",
+                                                       "cpu_total_seconds = temps CPU noyau + utilisateur cumule (GetProcessTimes, unites 100 ns).",
+                                                       "private_ws_bytes = pages valides non partagees (QueryWorkingSet) x taille de page ; -1 si indisponible.",
+                                                       "Comparer deux snapshots (avant/apres) pour obtenir les deltas handles / GDI / USER / WS."
+                                                   ]
+                                     },
+                 "snapshot_after":  {
+                                        "schema":  "riotswitch.perf.process-snapshot/1",
+                                        "mode":  "snapshot",
+                                        "tool":  {
+                                                     "name":  "ProcessSampler",
+                                                     "version":  "1.0.0",
+                                                     "script":  "ProcessSampler.ps1",
+                                                     "native_helper":  "ProcessNative.cs",
+                                                     "powershell_version":  "5.1.26100.9711",
+                                                     "os":  "Microsoft Windows NT 10.0.26200.0"
+                                                 },
+                                        "label":  "validation-snapshot-after",
+                                        "generated_at_utc":  "2026-11-11T00:36:07.3666820Z",
+                                        "host":  {
+                                                     "name":  "SUPERKNACKY",
+                                                     "user":  "SuperKnacky",
+                                                     "logical_processors":  16,
+                                                     "os_caption":  "Windows_NT"
+                                                 },
+                                        "target":  {
+                                                       "pid":  23352,
+                                                       "process_name":  "powershell",
+                                                       "exe_path":  "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                                                       "process_start_iso":  "2026-11-11T00:36:03.5173100Z",
+                                                       "uptime_s":  3.849,
+                                                       "sampling_access_rights":  "0x410",
+                                                       "private_working_set_supported":  true
+                                                   },
+                                        "counters":  {
+                                                         "cpu_total_seconds":  7.5625,
+                                                         "cpu_user_seconds":  6.734375,
+                                                         "cpu_kernel_seconds":  0.828125,
+                                                         "ws_bytes":  360378368,
+                                                         "private_ws_bytes":  294825984,
+                                                         "commit_bytes":  354140160,
+                                                         "peak_ws_bytes":  427970560,
+                                                         "handles":  723,
+                                                         "gdi_objects":  19,
+                                                         "user_objects":  20,
+                                                         "threads":  29,
+                                                         "io_read_bytes":  34358500,
+                                                         "io_write_bytes":  33949557,
+                                                         "io_other_bytes":  107892,
+                                                         "io_read_operations":  177,
+                                                         "io_write_operations":  103,
+                                                         "io_other_operations":  6007,
+                                                         "page_faults":  122785
+                                                     },
+                                        "sampler_overhead":  {
+                                                                 "snapshot_read_ms":  25.184,
+                                                                 "note":  "Duree murale de la lecture snapshot (hors ouverture/fermeture du handle)."
+                                                             },
+                                        "warnings":  [
+
+                                                     ],
+                                        "notes":  [
+                                                      "Mode snapshot : une seule lecture P/Invoke, aucune boucle, aucun CSV.",
+                                                      "Les compteurs E/S et les defauts de page sont CUMULES depuis le demarrage du processus (pas des deltas).",
+                                                      "cpu_total_seconds = temps CPU noyau + utilisateur cumule (GetProcessTimes, unites 100 ns).",
+                                                      "private_ws_bytes = pages valides non partagees (QueryWorkingSet) x taille de page ; -1 si indisponible.",
+                                                      "Comparer deux snapshots (avant/apres) pour obtenir les deltas handles / GDI / USER / WS."
+                                                  ]
+                                    }
+             },
+    "overhead_target_pct_one_core":  0.5,
+    "overhead_note":  "Mesure par GetProcessTimes du processus PowerShell hote pendant la boucle. GetProcessTimes est quantifie au tick d horloge (~15,625 ms) : pour des rafales courtes a 1 Hz, le total mesure est arrondi au tick superieur et surestime le cout reel. Voir VALIDATION.md.",
+    "checks":  [
+                   {
+                       "name":  "worker_demarre",
+                       "passed":  true,
+                       "detail":  "PID 23352"
+                   },
+                   {
+                       "name":  "garde_fou_pas_riotswitch",
+                       "passed":  true,
+                       "detail":  "cible = powershell factice"
+                   },
+                   {
+                       "name":  "snapshot_exit_0",
+                       "passed":  true,
+                       "detail":  "exit 0 / 0"
+                   },
+                   {
+                       "name":  "snapshot_schema",
+                       "passed":  true,
+                       "detail":  "riotswitch.perf.process-snapshot/1"
+                   },
+                   {
+                       "name":  "snapshot_metriques",
+                       "passed":  true,
+                       "detail":  "cpu=6.484 s, private_ws=294801408 o, uptime=3.29 s"
+                   },
+                   {
+                       "name":  "snapshot_process_start_iso",
+                       "passed":  true,
+                       "detail":  "2026-11-11T00:36:03.5173100Z"
+                   },
+                   {
+                       "name":  "snapshot_handles_augmentent",
+                       "passed":  true,
+                       "detail":  "723 -\u003e 723"
+                   },
+                   {
+                       "name":  "serieA_exit_0",
+                       "passed":  true,
+                       "detail":  "exit 0"
+                   },
+                   {
+                       "name":  "serieB_exit_0",
+                       "passed":  true,
+                       "detail":  "exit 0"
+                   },
+                   {
+                       "name":  "csv_15_colonnes",
+                       "passed":  true,
+                       "detail":  "15 colonnes"
+                   },
+                   {
+                       "name":  "csv_nb_lignes",
+                       "passed":  true,
+                       "detail":  "60 lignes / 60 echantillons"
+                   },
+                   {
+                       "name":  "csv_decimaux_invariants",
+                       "passed":  true,
+                       "detail":  "exemple cpu_pct_core=188.105, elapsed_s=1.030"
+                   },
+                   {
+                       "name":  "json_schema",
+                       "passed":  true,
+                       "detail":  "riotswitch.perf.process-sampler/1"
+                   },
+                   {
+                       "name":  "cpu_plausible",
+                       "passed":  true,
+                       "detail":  "196.622 % d un coeur (2 threads brulants attendus ~200)"
+                   },
+                   {
+                       "name":  "memoire_privee_plausible",
+                       "passed":  true,
+                       "detail":  "281.836 Mio (200 Mio alloues et touches)"
+                   },
+                   {
+                       "name":  "handles_plausibles",
+                       "passed":  true,
+                       "detail":  "max 724 (60 fichiers maintenus ouverts)"
+                   },
+                   {
+                       "name":  "gdi_user_non_nuls",
+                       "passed":  true,
+                       "detail":  "GDI 19, USER 20"
+                   },
+                   {
+                       "name":  "io_mesurees",
+                       "passed":  true,
+                       "detail":  "7.438 Mio lus, 7.438 Mio ecrits"
+                   },
+                   {
+                       "name":  "threads_present",
+                       "passed":  true,
+                       "detail":  "max 30"
+                   },
+                   {
+                       "name":  "duree_mesuree",
+                       "passed":  true,
+                       "detail":  "60.022 s"
+                   },
+                   {
+                       "name":  "crosscheck_global",
+                       "passed":  true,
+                       "detail":  "CPU ecart 0.019 %, WS ecart 0 %"
+                   },
+                   {
+                       "name":  "crosscheck_cpu_tolerance",
+                       "passed":  true,
+                       "detail":  "0.037 pt / 0.019 %"
+                   },
+                   {
+                       "name":  "crosscheck_ws_tolerance",
+                       "passed":  true,
+                       "detail":  "0 Kio"
+                   },
+                   {
+                       "name":  "threads_attribues",
+                       "passed":  true,
+                       "detail":  "methode : NtQuerySystemInformation(SystemProcessInformation) + GetThreadTimes de secours, deltas par intervalle"
+                   },
+                   {
+                       "name":  "threads_couverture",
+                       "passed":  true,
+                       "detail":  "99.97 % du CPU process attribue"
+                   },
+                   {
+                       "name":  "threads_top5",
+                       "passed":  true,
+                       "detail":  "3 threads dans le top"
+                   },
+                   {
+                       "name":  "surcout_mesure",
+                       "passed":  true,
+                       "detail":  "1.093 % d un coeur, 0.068 % machine, 10.938 ms CPU/echantillon"
+                   }
+               ],
+    "failures":  [
+
+                 ],
+    "overall_pass":  true
+}

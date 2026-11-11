@@ -119,7 +119,10 @@ internal sealed class WatchContext : ApplicationContext
 
         if (window is null)
         {
-            DisposeOverlay();
+            // On garde l'instance de l'overlay pour la réutiliser au prochain
+            // affichage : la recréer à chaque fois coûtait la création du handle
+            // WinForms et le rendu initial à chaque cycle (30-90 ms).
+            HideOverlay();
 
             if (!_exitOnClientClose) return;
 
@@ -193,9 +196,10 @@ internal sealed class WatchContext : ApplicationContext
         {
             // La fenêtre peut être fermée alors que l'UX ou le service Riot reste
             // en arrière-plan (zone de notification). On ne quitte que lorsque tout
-            // a réellement disparu.
-            return _processController.FindClientUi() is not null
-                || _processController.FindService() is not null;
+            // a réellement disparu. Une seule énumération des processus par
+            // vérification (l'ancienne version en faisait deux, une par nom).
+            var processes = _processController.FindRiotProcesses();
+            return processes.Any(p => p.IsClientUi || p.IsService);
         }
         catch
         {
@@ -209,7 +213,7 @@ internal sealed class WatchContext : ApplicationContext
 
         if (SwitchSignal.IsActive()) return;
         if (!_seenWindow && DateTime.UtcNow < _graceUntil) return;
-        if (_overlay is not null && !_overlay.IsDisposed) return;
+        if (_overlay is { Visible: true }) return;
 
         // Le client Riot peut être réduit dans la zone de notification : sa fenêtre
         // est absente mais son UX ou son service tourne encore. On attend que tout
@@ -242,6 +246,18 @@ internal sealed class WatchContext : ApplicationContext
         }
     }
 
+    private void HideOverlay()
+    {
+        try
+        {
+            _overlay?.HideAttached();
+        }
+        catch
+        {
+            // L'overlay est peut-être déjà détruit avec la fenêtre Riot.
+        }
+    }
+
     private void DisposeOverlay()
     {
         try
@@ -259,7 +275,7 @@ internal sealed class WatchContext : ApplicationContext
     private void TrimWorkingSetIfIdle()
     {
         if (_quitting) return;
-        if (_overlay is { IsDisposed: false }) return;
+        if (_overlay is { Visible: true }) return;
 
         try
         {

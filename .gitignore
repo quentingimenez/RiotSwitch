@@ -14,3 +14,12 @@ RiotSwitch-win-x64.zip.sha256
 branding/proposals/
 
 dist-installer/
+
+# Artefacts de mesure de performance (régénérés par tools/perf/run/Campaign.ps1)
+tools/perf/results/
+tools/perf/build/
+tools/perf/sampler/results/
+tools/perf/probe/results/
+tools/perf/verify/results/
+tools/perf/driver/logs/
+tools/perf/driver/.state/

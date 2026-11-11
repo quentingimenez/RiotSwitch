@@ -132,6 +132,14 @@ internal sealed class OverlayForm : Form
     private double _dragStartRight;
     private double _dragStartTop;
 
+    // Tampon de rendu réutilisé entre deux rafraîchissements : recréer un bitmap
+    // ARGB plein panneau (~0,5 Mo pour 380x316) et un Graphics à chaque survol
+    // coûtait plusieurs dixièmes de milliseconde et de la pression GC.
+    private Bitmap? _frameBitmap;
+    private Graphics? _frameGraphics;
+    private int _frameWidth;
+    private int _frameHeight;
+
     public OverlayForm(
         RiotPaths paths,
         SessionVault vault,
@@ -163,10 +171,14 @@ internal sealed class OverlayForm : Form
             ControlStyles.UserPaint,
             true);
 
-        _positionTimer = new System.Windows.Forms.Timer { Interval = 500 };
+        _positionTimer = new System.Windows.Forms.Timer { Interval = 1000 };
         _positionTimer.Tick += (_, _) =>
         {
             if (IsDisposed || Disposing) return;
+
+            // Veille (overlay caché) : rien à faire, le hook de déplacement
+            // prendra le relais dès que la fenêtre Riot réapparaîtra.
+            if (!Visible) return;
 
             // Filet de sécurité : le hook de déplacement met l'overlay à jour
             // immédiatement, et l'ordre Z est réaffirmé au cas où une activation
@@ -267,9 +279,55 @@ internal sealed class OverlayForm : Form
             AppNativeMethods.SetOwner(Handle, target.Handle);
         }
 
-        if (!Visible) Show();
+        if (!Visible)
+        {
+            // Réutilisation après une période de veille : recharger les données
+            // (compte actif, liste) avant de réafficher, sans redessiner deux fois.
+            ReloadData(update: false);
+            Show();
+            _positionTimer.Start();
+        }
+
         UpdateLayered();
         EnsureAboveOwner();
+    }
+
+    /// <summary>
+    /// Cache l'overlay sans le détruire : le veilleur réutilise l'instance au
+    /// prochain affichage. Recréer le formulaire à chaque cycle coûtait la
+    /// création du handle WinForms et le rendu initial (~30-90 ms et un pic de
+    /// mémoire).
+    /// </summary>
+    public void HideAttached()
+    {
+        if (IsDisposed || Disposing) return;
+
+        _positionTimer.Stop();
+        _outsideTimer.Stop();
+        _statusTimer.Stop();
+
+        if (Capture) Capture = false;
+
+        _expanded = false;
+        _hoverRow = -1;
+        _hoverButton = -1;
+        _hoverPin = false;
+        _hoverClose = false;
+        _hoverCollapsed = false;
+        _collapsedPressed = false;
+        _pressedPin = false;
+        _pressedClose = false;
+        _pressedFooterButton = -1;
+        _dragging = false;
+        _dragMoved = false;
+        _status = null;
+        _statusLines = 0;
+        _statusExpiresUtc = DateTime.MaxValue;
+        Cursor = Cursors.Default;
+
+        ReleaseFrameBuffer();
+
+        if (Visible) Hide();
     }
 
     public void RefreshAccounts()
@@ -322,6 +380,7 @@ internal sealed class OverlayForm : Form
     private void UpdatePosition()
     {
         if (IsDisposed || Disposing || _target.Handle == IntPtr.Zero) return;
+        if (!Visible) return;
 
         if (IsWindowUnavailable(_target))
         {
@@ -542,8 +601,28 @@ internal sealed class OverlayForm : Form
         var height = _layout.WindowHeightPx;
         if (width <= 0 || height <= 0) return;
 
-        using var bitmap = RenderBitmap(width, height, TextHint);
-        ApplyLayeredWindow(bitmap, _layout.WindowRectPx);
+        if (_frameGraphics is null ||
+            _frameBitmap is null ||
+            _frameWidth != width ||
+            _frameHeight != height)
+        {
+            ReleaseFrameBuffer();
+            _frameBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            _frameGraphics = Graphics.FromImage(_frameBitmap);
+            _frameWidth = width;
+            _frameHeight = height;
+        }
+
+        var graphics = _frameGraphics;
+        graphics.ResetTransform();
+        graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        graphics.TextRenderingHint = TextHint;
+        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        graphics.Clear(Color.Transparent);
+        graphics.ScaleTransform((float)_scale, (float)_scale);
+        Draw(graphics);
+
+        ApplyLayeredWindow(_frameBitmap, _layout.WindowRectPx);
     }
 
     /// <summary>
@@ -555,18 +634,18 @@ internal sealed class OverlayForm : Form
     /// </summary>
     private const TextRenderingHint TextHint = TextRenderingHint.ClearTypeGridFit;
 
-    /// <summary>Rendu hors écran du panneau complet dans son état courant.</summary>
-    private Bitmap RenderBitmap(int width, int height, TextRenderingHint hint)
+    /// <summary>
+    /// Libère le tampon de rendu réutilisé : appelé au masquage de l'overlay
+    /// (le veilleur réutilise l'instance) et à sa destruction.
+    /// </summary>
+    private void ReleaseFrameBuffer()
     {
-        var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-        using var graphics = Graphics.FromImage(bitmap);
-        graphics.SmoothingMode = SmoothingMode.AntiAlias;
-        graphics.TextRenderingHint = hint;
-        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-        graphics.Clear(Color.Transparent);
-        graphics.ScaleTransform((float)_scale, (float)_scale);
-        Draw(graphics);
-        return bitmap;
+        _frameGraphics?.Dispose();
+        _frameGraphics = null;
+        _frameBitmap?.Dispose();
+        _frameBitmap = null;
+        _frameWidth = 0;
+        _frameHeight = 0;
     }
 
     private double GetScale()
@@ -2052,6 +2131,7 @@ internal sealed class OverlayForm : Form
         if (disposing)
         {
             StopTimers();
+            ReleaseFrameBuffer();
         }
 
         base.Dispose(disposing);
