@@ -1,9 +1,9 @@
 ; Installateur RiotSwitch (Inno Setup 6)
 ; Compilation : "C:\Users\<user>\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer\RiotSwitch.iss
-; Version : passée par le workflow de release avec /DMyAppVersion=1.1.17
+; Version : passée par le workflow de release avec /DMyAppVersion=1.1.18
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.1.17"
+  #define MyAppVersion "1.1.18"
 #endif
 
 #define MyAppName "RiotSwitch"

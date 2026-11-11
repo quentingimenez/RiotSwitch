@@ -66,7 +66,7 @@ Si la session d'un compte a expiré, le client reste sur son écran de connexion
 
 ## Performances
 
-Mesures du 2026-11-11 sur Windows 11 (16 cœurs), binaire v1.1.17 puis **optimisations ÷2** (détails au [§13 du rapport](docs/perf/rapport-performance.fr.md)) :
+Mesures du 2026-11-11 sur Windows 11 (16 cœurs), binaire v1.1.18 (**optimisations ÷2**) (détails au [§13 du rapport](docs/perf/rapport-performance.fr.md)) :
 
 | État | CPU moyen | Mémoire de travail |
 | --- | --- | --- |
@@ -77,7 +77,7 @@ Mesures du 2026-11-11 sur Windows 11 (16 cœurs), binaire v1.1.17 puis **optimis
 - **Réactivité** : overlay visible en ~65–80 ms après le passage au premier plan ; suivi des déplacements du client Riot en 1,5–3,4 ms ; déplier/replier ≈ 76 ms au total (dont 60 ms de maintien de l'outil de mesure ; rendu < 0,5 ms).
 - **Cycles** : la fenêtre d'overlay est réutilisée (plus de destruction/recréation) — disparition ≈ 30 ms après minimisation du client, retour 73–99 ms ; déplier/replier ≈ 9–14 ms de CPU.
 - **Démarrage à froid** : ≈ 62–64 Mo avant compactage, puis ~9 Mo de working set après le trim automatique (~2 s).
-- **Optimisations** : CPU du veilleur ÷2,5 à ÷5, overlay et interactions ÷2, croissance mémoire des cycles supprimée ; ÷2,7 à ÷3,4 en usage réel (comparaison v1.1.17 → build optimisé au §13).
+- **Optimisations** : CPU du veilleur ÷2,5 à ÷5, overlay et interactions ÷2, croissance mémoire des cycles supprimée ; ÷2,7 à ÷3,4 en usage réel (comparaison v1.1.17 → v1.1.18 au §13).
 
 Méthode, chiffres détaillés et comparaison aux valeurs annoncées : [rapport de campagne](docs/perf/rapport-performance.fr.md) (recoupé par une [vérification indépendante](docs/perf/verification.fr.md) pour la version 1.1.17).
 
@@ -104,7 +104,7 @@ RiotSwitch s'utilise aussi en script : `--watch`, `--launch-riot`, `--launch-rio
 | --- | --- |
 | [Guide utilisateur](docs/utilisation.fr.md) | Installation, premier lancement, overlay, CLI, mises à jour, dépannage. |
 | [Architecture](docs/architecture.fr.md) | Fonctionnement interne, coffre DPAPI, séquence de switch. |
-| [Validation](docs/validation.fr.md) | Checklist des tests et des releases, jusqu'à la v1.1.17. |
+| [Validation](docs/validation.fr.md) | Checklist des tests et des releases, jusqu'à la v1.1.18. |
 | [Performances](docs/perf/rapport-performance.fr.md) | Mesures de campagne (veilleur, overlay, interactions) et vérification indépendante. |
 | [Spec de l'overlay](docs/overlay-ui/spec-overlay.fr.md) | Design tokens, composants, captures de la maquette. |
 

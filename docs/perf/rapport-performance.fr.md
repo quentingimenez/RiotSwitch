@@ -289,11 +289,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\perf\run\Campaign.ps
 Prérequis : Riot Client présent (ou utilisable via `tools/perf/run/Start-RiotClient.ps1`), machine
 inactive, aucune autre mesure en parallèle, écrire dans `tools/perf/results/` (untracked).
 
-## 13. Optimisation « ÷2 » (build optimisé, 2026-11-11 après-midi)
+## 13. Optimisation « ÷2 » (v1.1.18, 2026-11-11 après-midi)
 
 Objectif : diviser par deux la consommation du veilleur et de l'overlay sans dégrader les latences.
-Build mesuré : `src/RiotSwitcher.App/bin/Release/net8.0-windows/RiotSwitch.exe` (même version 1.1.17,
-modifications non encore publiées), campagne `official-06` (13:16–13:32 UTC) + comparaisons A/B sous
+Build mesuré : `src/RiotSwitcher.App/bin/Release/net8.0-windows/RiotSwitch.exe` (version 1.1.18, avant
+publication), campagne `official-06` (13:16–13:32 UTC) + comparaisons A/B sous
 activité utilisateur réelle (`abactive-new1` / `abactive-old` / `abactive-new2`, 180 s chacun).
 
 ### Changements
@@ -313,7 +313,7 @@ activité utilisateur réelle (`abactive-new1` / `abactive-old` / `abactive-new2
 
 ### Résultats (machine quasi inactive, fenêtres de 147 s, `official-06`)
 
-| État | v1.1.17 (référence) | Build optimisé | Ratio |
+| État | v1.1.17 (référence) | v1.1.18 (optimisé) | Ratio |
 |---|---:|---:|---:|
 | W — veilleur `--watch`, sans overlay | 0,106 % d'un cœur (passe propre ; 0,224 % avec activité) | **0,0425 %** | ÷2,5 (÷5,3 vs passe active) |
 | A — overlay replié visible | 0,031 % | **0,0106 %** | ÷2,9 |
@@ -331,7 +331,7 @@ activité utilisateur réelle (`abactive-new1` / `abactive-old` / `abactive-new2
 
 ### Utilisation réelle (utilisateur actif, A/B alterné 180 s, même activité)
 
-| Métrique | v1.1.17 | Build optimisé |
+| Métrique | v1.1.17 | v1.1.18 |
 |---|---:|---:|
 | CPU moyen | 1,89 % d'un cœur (0,118 % machine, max 9,4) | **0,56–0,69 %** (0,035–0,043 %, max 7,8–23) |
 | WS médian | 26,4 Mo | 15,9–30,9 Mo |
@@ -344,7 +344,7 @@ Soit **÷2,7 à ÷3,4 en usage réel** (le pire cas 0,69 % correspond au process
 
 - B et E restent sous le bruit de quantification Windows (quantum 15,6 ms) et ont été mesurés pendant
   une session avec fenêtres utilisateur actives ; la mémoire et les latences, elles, ne régressent pas.
-- La vérification indépendante du §9 porte sur la v1.1.17 ; le build optimisé n'a pas été re-vérifié
+- La vérification indépendante du §9 porte sur la v1.1.17 ; la v1.1.18 n'a pas été re-vérifiée
   par ce second harnais.
 - Chiffres `abactive-*` : nouvelle machine Windows redémarrée entre les deux campagnes, 16 cœurs, DPI 1.
 
@@ -353,6 +353,6 @@ Soit **÷2,7 à ÷3,4 en usage réel** (le pire cas 0,69 % correspond au process
 - `tools/perf/results/campaign-official-06/` : phases F, W, A, B, C, D, E, E2, `analyze-summary.json`,
   `campaign-summary.json`, CSV/JSON par phase.
 - `tools/perf/results/compare/abactive-{new1,old,new2}.{csv,json}` : comparaison A/B sous activité
-  réelle (new1 = processus ancien, old = `dist` v1.1.17, new2 = build optimisé frais).
+  réelle (new1 = processus ancien, old = `dist` v1.1.17, new2 = v1.1.18 frais).
 - `tools/perf/results/compare/` : mesures préliminaires (`old-noRiot*`, `new-noRiot*`, `ab-*`,
   `diag-v2/v3`).
